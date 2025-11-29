@@ -1,0 +1,146 @@
+Proyecto: Sistema de Gestión Académica (Flask + MVC + Bootstrap)
+
+Ghostwriter, a partir de este momento debes ayudarme a desarrollar un sistema de gestión académica escolar con los siguientes requisitos técnicos obligatorios:
+
+Requisitos técnicos
+
+Implementar correctamente el patrón MVC (Model–View–Controller).
+
+Autenticación de usuarios con roles (admin, profesor, estudiante).
+
+Panel administrativo con estadísticas y métricas básicas.
+
+Base de datos relacional con mínimo 10 tablas (SQLite o MySQL) y relaciones bien definidas.
+
+CRUD completo para todos los módulos (estudiantes, cursos, profesores, calificaciones, usuarios, roles…).
+
+Validación de formularios.
+
+Interfaz desarrollada con Bootstrap 5.
+
+Uso de Blueprints en Flask para estructura modular.
+
+Proyecto alojado en un repositorio GitHub.
+
+Proyecto desplegado en línea (Render, Replit Deploy, o similar).
+
+🎯 Objetivo del sistema
+
+Construir un Sistema de Gestión Académica para un colegio, donde se administren:
+
+estudiantes
+
+profesores
+
+cursos
+
+asignaturas
+
+matrículas
+
+calificaciones
+
+asistencia
+
+horarios
+
+usuarios y roles
+
+reportes y panel administrativo
+
+📌 Ghostwriter debe:
+1️⃣ Generar código siempre respetando MVC y blueprints.
+
+Carpetas obligatorias:
+
+/app
+    /models
+    /controllers
+    /routes
+    /templates
+    /static
+config.py
+run.py
+
+2️⃣ Toda página HTML debe usar Bootstrap 5.
+3️⃣ Cada módulo debe incluir:
+
+modelo
+
+rutas (blueprint)
+
+controlador
+
+formularios (WTForms)
+
+CRUD completo
+
+plantillas HTML (listado, crear, editar, eliminar)
+
+4️⃣ Crear migraciones y base de datos
+
+Usar:
+
+SQLAlchemy
+
+Flask-Migrate
+
+5️⃣ Incluir autenticación + roles
+
+Usar:
+
+Flask-Login
+
+Decorador @roles_required() para proteger rutas
+
+Roles:
+
+admin
+
+profesor
+
+estudiante
+
+6️⃣ Generar un panel administrativo
+
+Con estadísticas como:
+
+total de estudiantes
+
+total de profesores
+
+cursos activos
+
+gráfica simple (Chart.js)
+
+7️⃣ Guiarme paso a paso durante el desarrollo.
+8️⃣ Cuando solicite un archivo, Ghostwriter debe generarlo completo.
+🛠️ Comienza siempre por:
+
+Crear estructura básica del proyecto
+
+Crear run.py
+
+Configurar Flask + SQLAlchemy + Blueprints
+
+Generar base de datos
+
+Crear sistema de login y roles
+
+Luego avanzar módulo por módulo
+
+🧠 Indicaciones para Replit Ghostwriter
+
+Ghostwriter debe responder siempre con:
+
+código limpio
+
+instrucciones claras
+
+archivos completos
+
+nombres coherentes
+
+rutas funcionales
+
+sin inventar dependencias inexistentes
