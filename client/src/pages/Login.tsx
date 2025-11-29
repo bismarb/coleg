@@ -6,18 +6,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap, User, Shield, BookOpen, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const { login } = useAuth();
+  const { toast } = useToast();
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("admin@escuela.edu");
   const [password, setPassword] = useState("password");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (role: Role) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      login(role);
-    }, 500);
+  const handleSubmit = (role: Role) => {
+    if (isRegistering) {
+      // Simulate registration
+      toast({
+        title: "Cuenta creada",
+        description: `Bienvenido, ${name}. Tu cuenta de ${role} ha sido creada exitosamente.`,
+      });
+      // Auto login after registration for demo
+      setTimeout(() => {
+        login(role);
+      }, 1000);
+    } else {
+      // Login
+      setTimeout(() => {
+        login(role);
+      }, 500);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsRegistering(!isRegistering);
+    // Reset demo credentials if switching to register, or restore if login
+    if (!isRegistering) {
+      setEmail("");
+      setPassword("");
+      setName("");
+    } else {
+      setEmail("admin@escuela.edu");
+      setPassword("password");
+    }
   };
 
   return (
@@ -32,9 +61,13 @@ export default function Login() {
 
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Iniciar Sesión</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            {isRegistering ? "Crear Cuenta" : "Iniciar Sesión"}
+          </CardTitle>
           <CardDescription className="text-center">
-            Seleccione su rol para ingresar al sistema demostrativo
+            {isRegistering 
+              ? "Ingresa tus datos para registrarte en el sistema" 
+              : "Seleccione su rol para ingresar al sistema demostrativo"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,6 +79,19 @@ export default function Login() {
             </TabsList>
             
             <div className="space-y-4">
+              {isRegistering && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre Completo</Label>
+                  <Input 
+                    id="name" 
+                    type="text" 
+                    placeholder="Juan Pérez" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>
                 <Input 
@@ -82,25 +128,34 @@ export default function Login() {
               </div>
 
               <TabsContent value="admin">
-                <Button className="w-full mt-2" onClick={() => handleLogin("admin")}>
+                <Button className="w-full mt-2" onClick={() => handleSubmit("admin")}>
                   <Shield className="mr-2 h-4 w-4" />
-                  Entrar como Administrador
+                  {isRegistering ? "Registrar Administrador" : "Entrar como Administrador"}
                 </Button>
               </TabsContent>
               <TabsContent value="teacher">
-                <Button className="w-full mt-2" onClick={() => handleLogin("teacher")}>
+                <Button className="w-full mt-2" onClick={() => handleSubmit("teacher")}>
                   <BookOpen className="mr-2 h-4 w-4" />
-                  Entrar como Profesor
+                  {isRegistering ? "Registrar Profesor" : "Entrar como Profesor"}
                 </Button>
               </TabsContent>
               <TabsContent value="student">
-                <Button className="w-full mt-2" onClick={() => handleLogin("student")}>
+                <Button className="w-full mt-2" onClick={() => handleSubmit("student")}>
                   <User className="mr-2 h-4 w-4" />
-                  Entrar como Estudiante
+                  {isRegistering ? "Registrar Estudiante" : "Entrar como Estudiante"}
                 </Button>
               </TabsContent>
             </div>
           </Tabs>
+
+          <div className="mt-6 text-center text-sm">
+            <span className="text-muted-foreground">
+              {isRegistering ? "¿Ya tienes una cuenta?" : "¿No tienes cuenta?"}
+            </span>
+            <Button variant="link" className="p-0 h-auto ml-2" onClick={toggleMode}>
+              {isRegistering ? "Inicia Sesión" : "Regístrate aquí"}
+            </Button>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-center border-t p-4 bg-muted/10">
           <p className="text-xs text-muted-foreground">
