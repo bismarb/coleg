@@ -45,7 +45,7 @@
 
 /* Professional Academic Theme - Slate/Blue */
 :root {
-  --background: 210 40% 98%;
+  --background: 195 85% 95%; /* Light Celeste / Sky Blue */
   --foreground: 222 47% 11%;
 
   --card: 0 0% 100%;
@@ -57,13 +57,13 @@
   --primary: 221 83% 53%; /* Academic Blue */
   --primary-foreground: 210 40% 98%;
 
-  --secondary: 210 40% 96.1%;
+  --secondary: 195 40% 90%; /* Muted Celeste */
   --secondary-foreground: 222 47% 11.2%;
 
-  --muted: 210 40% 96.1%;
+  --muted: 195 40% 90%; /* Muted Celeste */
   --muted-foreground: 215 16% 47%;
 
-  --accent: 210 40% 96.1%;
+  --accent: 195 40% 90%;
   --accent-foreground: 222 47% 11.2%;
 
   --destructive: 0 84.2% 60.2%;
