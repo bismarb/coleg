@@ -37,6 +37,19 @@ def init_db():
         if User.query.filter_by(email='admin@example.com').first():
             return
         
+        # Create grades
+        from models import Grade
+        grades_data = [
+            Grade(name='1° Primaria', level=1),
+            Grade(name='2° Primaria', level=2),
+            Grade(name='3° Primaria', level=3),
+            Grade(name='4° Primaria', level=4),
+            Grade(name='5° Primaria', level=5),
+            Grade(name='6° Primaria', level=6),
+        ]
+        db.session.add_all(grades_data)
+        db.session.flush()
+        
         # Create sample users
         admin = User(email='admin@example.com', password=hash_password('123456'), name='Admin', role='admin')
         teacher = User(email='teacher@example.com', password=hash_password('123456'), name='Professor', role='teacher')
