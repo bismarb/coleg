@@ -22,7 +22,6 @@
                             <th class="px-6 py-4 text-center">2do Semestre</th>
                             <th class="px-6 py-4 text-center">3er Semestre</th>
                             <th class="px-6 py-4 text-center">Promedio</th>
-                            <th class="px-6 py-4 text-center">Guardar</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
@@ -53,14 +52,9 @@
                                         {% endif %}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold">
-                                        <i class="fas fa-save"></i> Guardar
-                                    </button>
-                                </td>
                             </form>
                             {% else %}
-                            <td colspan="5" class="px-6 py-4">
+                            <td colspan="4" class="px-6 py-4">
                                 <span class="text-gray-400 text-sm italic">No inscrito contigo</span>
                             </td>
                             {% endif %}
@@ -109,6 +103,13 @@ document.querySelectorAll('.semester-input').forEach(input => {
                     promediElement.innerHTML = '<span class="text-gray-400">-</span>';
                 }
             }
+            
+            // Guardar automáticamente
+            const formData = new FormData(form);
+            fetch('{{ url_for("teacher_grades") }}', {
+                method: 'POST',
+                body: formData
+            }).catch(error => console.error('Error al guardar:', error));
         }
     });
 });
