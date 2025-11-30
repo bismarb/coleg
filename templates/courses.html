@@ -14,7 +14,7 @@
     <div class="bg-sky-50 rounded-2xl p-4 border-2 border-sky-200">
         <div class="relative">
             <i class="fas fa-search absolute left-4 top-4 text-sky-400 text-lg"></i>
-            <input type="text" id="searchInput" placeholder="Buscar por código, profesor o grado..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onkeyup="filterCourses()">
+            <input type="text" id="searchInput" placeholder="Buscar por código, profesor, apellido o grado..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onkeyup="filterCourses()">
         </div>
     </div>
 
@@ -24,6 +24,7 @@
                 <tr>
                     <th class="px-6 py-4 text-left">Código</th>
                     <th class="px-6 py-4 text-left">Profesor</th>
+                    <th class="px-6 py-4 text-left">Apellido</th>
                     <th class="px-6 py-4 text-left">Grado que enseña</th>
                     <th class="px-6 py-4 text-left">Estudiantes</th>
                     <th class="px-6 py-4 text-left">Acciones</th>
@@ -31,9 +32,10 @@
             </thead>
             <tbody class="divide-y" id="courseTableBody">
                 {% for course in courses %}
-                <tr class="hover:bg-sky-50 course-row" data-searchtext="{{ course.course_code.lower() }} {{ course.teacher.user.name.lower() }} {{ course.grade_rel.name.lower() }}">
+                <tr class="hover:bg-sky-50 course-row" data-searchtext="{{ course.course_code.lower() }} {{ course.teacher.user.name.lower() }} {{ course.teacher.apellido_paterno.lower() if course.teacher.apellido_paterno else '' }} {{ course.teacher.apellido_materno.lower() if course.teacher.apellido_materno else '' }} {{ course.grade_rel.name.lower() }}">
                     <td class="px-6 py-4 font-semibold">{{ course.course_code }}</td>
                     <td class="px-6 py-4 text-sm">{{ course.teacher.user.name }}</td>
+                    <td class="px-6 py-4 text-sm">{{ course.teacher.apellido_paterno or '' }} {{ course.teacher.apellido_materno or '' }}</td>
                     <td class="px-6 py-4 text-sm">{{ course.grade_rel.name }}</td>
                     <td class="px-6 py-4 text-sm">
                         {% set enrolled = course.enrollments|length %}
@@ -142,7 +144,7 @@ function filterCourses() {
         if (!tbody.querySelector('.no-results')) {
             const noResultsRow = document.createElement('tr');
             noResultsRow.className = 'no-results';
-            noResultsRow.innerHTML = '<td colspan="5" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No se encontraron cursos</td>';
+            noResultsRow.innerHTML = '<td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No se encontraron cursos</td>';
             tbody.appendChild(noResultsRow);
         }
     } else {
