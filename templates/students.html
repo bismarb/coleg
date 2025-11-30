@@ -8,6 +8,13 @@
         </button>
     </div>
     
+    <div class="bg-sky-50 rounded-2xl p-4 border-2 border-sky-200">
+        <div class="relative">
+            <i class="fas fa-search absolute left-4 top-4 text-sky-400 text-lg"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nombre, apellido, email, código o grado..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onkeyup="filterStudents()">
+        </div>
+    </div>
+    
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <table class="w-full">
             <thead class="bg-gradient-to-r from-sky-600 to-sky-700 text-white">
@@ -22,9 +29,9 @@
                     <th class="px-6 py-4 text-left">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
+            <tbody class="divide-y" id="studentTableBody">
                 {% for student in students %}
-                <tr class="hover:bg-sky-50">
+                <tr class="hover:bg-sky-50 student-row" data-searchtext="{{ student.user.name.lower() }} {{ student.apellido_paterno.lower() if student.apellido_paterno else '' }} {{ student.apellido_materno.lower() if student.apellido_materno else '' }} {{ student.user.email.lower() }} {{ student.student_code.lower() }} {{ student.grade.name.lower() }}">
                     <td class="px-6 py-4 font-semibold">{{ student.user.name }}</td>
                     <td class="px-6 py-4 text-sm">{{ student.apellido_paterno or '-' }}</td>
                     <td class="px-6 py-4 text-sm">{{ student.apellido_materno or '-' }}</td>
@@ -93,5 +100,34 @@
 <script>
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function filterStudents() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.student-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const searchText = row.getAttribute('data-searchtext');
+        if (searchText.includes(searchInput)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    if (visibleCount === 0 && searchInput !== '') {
+        const tbody = document.getElementById('studentTableBody');
+        if (!tbody.querySelector('.no-results')) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.className = 'no-results';
+            noResultsRow.innerHTML = '<td colspan="8" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No se encontraron estudiantes</td>';
+            tbody.appendChild(noResultsRow);
+        }
+    } else {
+        const noResultsRow = document.querySelector('.no-results');
+        if (noResultsRow) noResultsRow.remove();
+    }
+}
 </script>
 {% endblock %}
