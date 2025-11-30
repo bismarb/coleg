@@ -656,11 +656,23 @@ def edit_schedule(schedule_id):
     
     if request.method == 'POST':
         try:
-            schedule.course_id = request.form.get('course_id')
-            schedule.day_of_week = request.form.get('day_of_week')
-            schedule.start_time = request.form.get('start_time')
-            schedule.end_time = request.form.get('end_time')
-            schedule.classroom = request.form.get('classroom')
+            teacher_id = request.form.get('teacher_id')
+            day_of_week = request.form.get('day_of_week')
+            start_time = request.form.get('start_time')
+            end_time = request.form.get('end_time')
+            classroom = request.form.get('classroom')
+            
+            # Find course for this teacher
+            course = Course.query.filter_by(teacher_id=teacher_id).first()
+            if not course:
+                flash('No se encontró un curso para este profesor', 'error')
+                return redirect(url_for('view_schedule'))
+            
+            schedule.course_id = course.id
+            schedule.day_of_week = day_of_week
+            schedule.start_time = start_time
+            schedule.end_time = end_time
+            schedule.classroom = classroom
             
             db.session.commit()
             flash('Horario actualizado', 'success')
@@ -669,8 +681,11 @@ def edit_schedule(schedule_id):
             db.session.rollback()
             flash(f'Error: {str(e)}', 'error')
     
-    courses = Course.query.all()
-    return render_template('edit_schedule.html', schedule=schedule, courses=courses)
+    today = date.today()
+    teachers = Teacher.query.filter(
+        (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
+    ).all()
+    return render_template('edit_schedule.html', schedule=schedule, teachers=teachers)
 
 
 @app.route('/schedule/<schedule_id>/delete', methods=['POST'])
