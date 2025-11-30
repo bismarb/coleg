@@ -4,7 +4,7 @@ Routes - Flask Views for School Management System
 
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
-from models import db, User, Student, Teacher, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
+from models import db, User, Student, Teacher, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject, Course
 from auth import verify_password, hash_password
 from app import app
 from datetime import date, datetime
@@ -68,6 +68,99 @@ def dashboard():
         }
     
     return render_template('dashboard.html', stats=stats)
+
+
+@app.route('/courses')
+@login_required
+def admin_courses():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    courses = Course.query.all()
+    teachers = Teacher.query.all()
+    grades = Grade.query.all()
+    subjects = Subject.query.all()
+    return render_template('admin_courses.html', courses=courses, teachers=teachers, grades=grades, subjects=subjects)
+
+
+@app.route('/course/add', methods=['POST'])
+@login_required
+def add_course():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        name = request.form.get('name')
+        code = request.form.get('code')
+        teacher_id = request.form.get('teacher_id')
+        grade_id = request.form.get('grade_id')
+        subject_id = request.form.get('subject_id')
+        credits = request.form.get('credits', 3)
+        
+        existing = Course.query.filter_by(code=code).first()
+        if existing:
+            flash('El código del curso ya existe', 'error')
+        else:
+            course = Course(name=name, code=code, teacher_id=teacher_id, grade_id=grade_id, subject_id=subject_id, credits=int(credits))
+            db.session.add(course)
+            db.session.commit()
+            flash(f'Curso {name} agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_courses'))
+
+
+@app.route('/course/<course_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_course(course_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    course = Course.query.get(course_id)
+    if not course:
+        flash('Curso no encontrado', 'error')
+        return redirect(url_for('admin_courses'))
+    
+    if request.method == 'POST':
+        try:
+            course.name = request.form.get('name')
+            course.code = request.form.get('code')
+            course.teacher_id = request.form.get('teacher_id')
+            course.grade_id = request.form.get('grade_id')
+            course.subject_id = request.form.get('subject_id')
+            course.credits = int(request.form.get('credits', 3))
+            db.session.commit()
+            flash('Curso actualizado exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('admin_courses'))
+    
+    teachers = Teacher.query.all()
+    grades = Grade.query.all()
+    subjects = Subject.query.all()
+    return render_template('edit_course.html', course=course, teachers=teachers, grades=grades, subjects=subjects)
+
+
+@app.route('/course/<course_id>/delete', methods=['POST'])
+@login_required
+def delete_course(course_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    course = Course.query.get(course_id)
+    if course:
+        db.session.delete(course)
+        db.session.commit()
+        flash('Curso eliminado exitosamente', 'success')
+    else:
+        flash('Curso no encontrado', 'error')
+    
+    return redirect(url_for('admin_courses'))
 
 
 @app.route('/students')

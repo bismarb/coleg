@@ -135,3 +135,19 @@ class Schedule(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     teacher = db.relationship('Teacher', backref='schedules')
     grade_rel = db.relationship('Grade', backref='schedules')
+
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(255), nullable=False)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
+    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
+    subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
+    credits = db.Column(db.Integer, default=3)
+    status = db.Column(db.String(20), default='active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    teacher = db.relationship('Teacher', backref='courses')
+    grade = db.relationship('Grade', backref='courses')
+    subject = db.relationship('Subject', backref='courses')
