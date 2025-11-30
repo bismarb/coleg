@@ -4,7 +4,7 @@ Routes - Flask Views for School Management System
 
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
-from models import db, User, Student, Teacher, Course, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
+from models import db, User, Student, Teacher, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
 from auth import verify_password, hash_password
 from app import app
 from datetime import date, datetime
@@ -48,15 +48,15 @@ def dashboard():
         stats = {
             'students': Student.query.count(),
             'teachers': Teacher.query.count(),
-            'courses': Course.query.count(),
+            'enrollments': Enrollment.query.count(),
             'grades': Grade.query.count()
         }
     elif current_user.role == 'teacher':
         teacher = Teacher.query.filter_by(user_id=current_user.id).first()
-        my_courses = Course.query.filter_by(teacher_id=teacher.id).all() if teacher else []
-        total_students = sum(len(c.enrollments) for c in my_courses)
+        my_enrollments = Enrollment.query.filter_by(teacher_id=teacher.id).all() if teacher else []
+        total_students = len(set(e.student_id for e in my_enrollments))
         stats = {
-            'my_courses': len(my_courses),
+            'my_enrollments': len(my_enrollments),
             'total_students': total_students
         }
     elif current_user.role == 'student':
@@ -289,7 +289,8 @@ def delete_teacher(teacher_id):
             return redirect(url_for('teachers'))
         
         user = teacher.user
-        Course.query.filter_by(teacher_id=teacher_id).delete()
+        Enrollment.query.filter_by(teacher_id=teacher_id).delete()
+        Schedule.query.filter_by(teacher_id=teacher_id).delete()
         db.session.delete(teacher)
         db.session.delete(user)
         db.session.commit()
@@ -302,113 +303,6 @@ def delete_teacher(teacher_id):
     return redirect(url_for('teachers'))
 
 
-@app.route('/courses')
-@login_required
-def courses():
-    if current_user.role == 'admin':
-        courses = Course.query.all()
-        subjects = Subject.query.all()
-        teachers = Teacher.query.all()
-        grades = Grade.query.all()
-    elif current_user.role == 'teacher':
-        teacher = Teacher.query.filter_by(user_id=current_user.id).first()
-        courses = Course.query.filter_by(teacher_id=teacher.id).all() if teacher else []
-        subjects = []
-        teachers = []
-        grades = []
-    else:
-        student = Student.query.filter_by(user_id=current_user.id).first()
-        enrollments = Enrollment.query.filter_by(student_id=student.id).all() if student else []
-        courses = [e.course for e in enrollments]
-        subjects = []
-        teachers = []
-        grades = []
-    
-    return render_template('courses.html', courses=courses, subjects=subjects, teachers=teachers, grades=grades)
-
-
-@app.route('/course/add', methods=['POST'])
-@login_required
-def add_course():
-    if current_user.role != 'admin':
-        return jsonify({'error': 'Denegado'}), 403
-    
-    try:
-        course_code = request.form.get('course_code')
-        subject_id = request.form.get('subject_id')
-        teacher_id = request.form.get('teacher_id')
-        grade_id = request.form.get('grade_id')
-        max_students = request.form.get('max_students', 30)
-        
-        course = Course(course_code=course_code, subject_id=subject_id, teacher_id=teacher_id, grade_id=grade_id, max_students=max_students)
-        db.session.add(course)
-        db.session.commit()
-        
-        flash('Curso agregado exitosamente', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error: {str(e)}', 'error')
-    
-    return redirect(url_for('courses'))
-
-
-@app.route('/course/<course_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_course(course_id):
-    if current_user.role != 'admin':
-        flash('Acceso denegado', 'error')
-        return redirect(url_for('courses'))
-    
-    course = Course.query.get(course_id)
-    if not course:
-        flash('Curso no encontrado', 'error')
-        return redirect(url_for('courses'))
-    
-    if request.method == 'POST':
-        try:
-            course.course_code = request.form.get('course_code')
-            course.subject_id = request.form.get('subject_id')
-            course.teacher_id = request.form.get('teacher_id')
-            course.grade_id = request.form.get('grade_id')
-            course.max_students = request.form.get('max_students')
-            course.status = request.form.get('status')
-            
-            db.session.commit()
-            flash('Curso actualizado', 'success')
-            return redirect(url_for('courses'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error: {str(e)}', 'error')
-    
-    subjects = Subject.query.all()
-    teachers = Teacher.query.all()
-    grades = Grade.query.all()
-    return render_template('edit_course.html', course=course, subjects=subjects, teachers=teachers, grades=grades)
-
-
-@app.route('/course/<course_id>/delete', methods=['POST'])
-@login_required
-def delete_course(course_id):
-    if current_user.role != 'admin':
-        return jsonify({'error': 'Denegado'}), 403
-    
-    try:
-        course = Course.query.get(course_id)
-        if not course:
-            flash('Curso no encontrado', 'error')
-            return redirect(url_for('courses'))
-        
-        Enrollment.query.filter_by(course_id=course_id).delete()
-        Schedule.query.filter_by(course_id=course_id).delete()
-        db.session.delete(course)
-        db.session.commit()
-        
-        flash('Curso eliminado', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error: {str(e)}', 'error')
-    
-    return redirect(url_for('courses'))
 
 
 @app.route('/grades')
@@ -486,7 +380,8 @@ def delete_grade(grade_id):
             return redirect(url_for('grades'))
         
         Student.query.filter_by(grade_id=grade_id).delete()
-        Course.query.filter_by(grade_id=grade_id).delete()
+        Enrollment.query.filter_by(grade_id=grade_id).delete()
+        Schedule.query.filter_by(grade_id=grade_id).delete()
         db.session.delete(grade)
         db.session.commit()
         
@@ -569,9 +464,7 @@ def mark_attendance():
 @login_required
 def view_schedule():
     schedules = Schedule.query.all()
-    courses = Course.query.all()
     grades = Grade.query.order_by(Grade.level).all()
-    subjects = Subject.query.all()
     
     # Get only teachers with active contracts (end_contract_date is NULL or in the future)
     today = date.today()
@@ -579,36 +472,19 @@ def view_schedule():
         (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
     ).all()
     
-    # Create a map of subject_id -> teachers who teach it with their specializations
-    subject_teachers_map = {}
-    for subject in subjects:
-        subject_teachers_map[subject.id] = []
-        # Find all courses for this subject
-        subject_courses = Course.query.filter_by(subject_id=subject.id).all()
-        for course in subject_courses:
-            teacher = Teacher.query.get(course.teacher_id)
-            if teacher and any(t.id == teacher.id for t in teachers):
-                # Add if not already in list
-                if not any(t['id'] == teacher.id for t in subject_teachers_map[subject.id]):
-                    subject_teachers_map[subject.id].append({
-                        'id': teacher.id,
-                        'name': teacher.user.name,
-                        'specialization': teacher.specialization or 'Sin especialización'
-                    })
-    
     # Organize schedules by grade
     schedules_by_grade = {}
     for grade in grades:
         grade_schedules = []
         for schedule in schedules:
-            if schedule.course.grade_id == grade.id:
+            if schedule.grade_id == grade.id:
                 grade_schedules.append(schedule)
         schedules_by_grade[grade.id] = {
             'grade': grade,
             'schedules': grade_schedules
         }
     
-    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers, subject_teachers_map=subject_teachers_map)
+    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, teachers=teachers)
 
 
 @app.route('/schedule/add', methods=['POST'])
@@ -620,17 +496,12 @@ def add_schedule():
     try:
         day_of_week = request.form.get('day_of_week')
         teacher_id = request.form.get('teacher_id')
+        grade_id = request.form.get('grade_id')
         start_time = request.form.get('start_time')
         end_time = request.form.get('end_time')
         classroom = request.form.get('classroom')
         
-        # Find any course for this teacher
-        course = Course.query.filter_by(teacher_id=teacher_id).first()
-        if not course:
-            flash('No se encontró un curso para este profesor', 'error')
-            return redirect(url_for('view_schedule'))
-        
-        schedule = Schedule(course_id=course.id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
+        schedule = Schedule(teacher_id=teacher_id, grade_id=grade_id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
         db.session.add(schedule)
         db.session.commit()
         
@@ -657,18 +528,14 @@ def edit_schedule(schedule_id):
     if request.method == 'POST':
         try:
             teacher_id = request.form.get('teacher_id')
+            grade_id = request.form.get('grade_id')
             day_of_week = request.form.get('day_of_week')
             start_time = request.form.get('start_time')
             end_time = request.form.get('end_time')
             classroom = request.form.get('classroom')
             
-            # Find course for this teacher
-            course = Course.query.filter_by(teacher_id=teacher_id).first()
-            if not course:
-                flash('No se encontró un curso para este profesor', 'error')
-                return redirect(url_for('view_schedule'))
-            
-            schedule.course_id = course.id
+            schedule.teacher_id = teacher_id
+            schedule.grade_id = grade_id
             schedule.day_of_week = day_of_week
             schedule.start_time = start_time
             schedule.end_time = end_time
@@ -749,25 +616,25 @@ def teacher_grades():
         flash('Profesor no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
-    # Get all courses for this teacher
-    courses = Course.query.filter_by(teacher_id=teacher.id).all()
+    # Get all enrollments for this teacher
+    enrollments = Enrollment.query.filter_by(teacher_id=teacher.id).all()
     
-    # Get only enrollments from this teacher's courses
+    # Get only enrollments from this teacher grouped by grade
     grades_data = {}
-    for course in courses:
-        grade = course.grade_rel
+    for enrollment in enrollments:
+        grade = enrollment.grade
         if grade.id not in grades_data:
-            # Get only enrollments from THIS TEACHER'S courses
-            enrollments = Enrollment.query.filter(Enrollment.course_id.in_([c.id for c in courses])).all()
+            # Get all enrollments for THIS TEACHER in this grade
+            grade_enrollments = Enrollment.query.filter_by(teacher_id=teacher.id, grade_id=grade.id).all()
             
             # Calculate total scores for each enrollment (student in teacher's course)
             students_with_scores = []
-            for enrollment in enrollments:
-                assessments = Assessment.query.filter_by(enrollment_id=enrollment.id).all()
+            for enr in grade_enrollments:
+                assessments = Assessment.query.filter_by(enrollment_id=enr.id).all()
                 total_score = sum(float(a.score) for a in assessments) / len(assessments) if assessments else 0
                 students_with_scores.append({
-                    'student': enrollment.student,
-                    'enrollment': enrollment,
+                    'student': enr.student,
+                    'enrollment': enr,
                     'total_score': round(total_score, 2)
                 })
             
@@ -812,16 +679,16 @@ def teacher_attendance():
         flash('Profesor no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
-    # Get all courses for this teacher
-    courses = Course.query.filter_by(teacher_id=teacher.id).all()
+    # Get all enrollments for this teacher
+    all_enrollments = Enrollment.query.filter_by(teacher_id=teacher.id).all()
     
     # Get only enrollments from this teacher's courses, grouped by grade
     grades_data = {}
-    for course in courses:
-        grade = course.grade_rel
+    for enrollment in all_enrollments:
+        grade = enrollment.grade
         if grade.id not in grades_data:
-            # Get only enrollments from THIS TEACHER'S courses
-            enrollments = Enrollment.query.filter(Enrollment.course_id.in_([c.id for c in courses])).all()
+            # Get only enrollments from THIS TEACHER in this grade
+            enrollments = Enrollment.query.filter_by(teacher_id=teacher.id, grade_id=grade.id).all()
             
             grades_data[grade.id] = {
                 'grade': grade,
