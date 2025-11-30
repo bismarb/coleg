@@ -68,32 +68,21 @@ class Teacher(db.Model):
     user = db.relationship('User', backref='teacher_profile')
 
 
-class Course(db.Model):
-    __tablename__ = 'courses'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
-    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
-    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
-    course_code = db.Column(db.String(50), unique=True, nullable=False)
-    max_students = db.Column(db.Integer, default=30)
-    status = db.Column(db.String(20), default='active')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    subject = db.relationship('Subject', backref='courses')
-    teacher = db.relationship('Teacher', backref='courses')
-    grade_rel = db.relationship('Grade', backref='courses')
-
-
 class Enrollment(db.Model):
     __tablename__ = 'enrollments'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = db.Column(db.String(36), db.ForeignKey('students.id'), nullable=False)
-    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
+    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
+    subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
+    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
     enrollment_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='enrolled')
     final_grade = db.Column(db.Numeric(5, 2))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     student = db.relationship('Student', backref='enrollments')
-    course = db.relationship('Course', backref='enrollments')
+    teacher = db.relationship('Teacher', backref='enrollments')
+    subject = db.relationship('Subject', backref='enrollments')
+    grade = db.relationship('Grade', backref='enrollments')
 
 
 class Assessment(db.Model):
@@ -131,10 +120,12 @@ class TeacherSubject(db.Model):
 class Schedule(db.Model):
     __tablename__ = 'schedules'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
+    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
+    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
     day_of_week = db.Column(db.String(20), nullable=False)
     start_time = db.Column(db.String(10), nullable=False)
     end_time = db.Column(db.String(10), nullable=False)
     classroom = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    course = db.relationship('Course', backref='schedule')
+    teacher = db.relationship('Teacher', backref='schedules')
+    grade_rel = db.relationship('Grade', backref='schedules')
