@@ -948,3 +948,52 @@ def student_my_courses():
         })
     
     return render_template('student_my_courses.html', courses_data=courses_data, student=student)
+
+
+@app.route('/student/my-grades')
+@login_required
+def student_my_grades():
+    if current_user.role != 'student':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    if not student:
+        flash('Estudiante no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get all enrollments for this student with their grades
+    enrollments = Enrollment.query.filter_by(student_id=student.id).all()
+    
+    grades_data = []
+    total_promedio = 0
+    total_subjects = 0
+    
+    for enrollment in enrollments:
+        # Calculate average from three semesters
+        sem1 = float(enrollment.semester_1) if enrollment.semester_1 else 0
+        sem2 = float(enrollment.semester_2) if enrollment.semester_2 else 0
+        sem3 = float(enrollment.semester_3) if enrollment.semester_3 else 0
+        promedio = round((sem1 + sem2 + sem3) / 3, 2)
+        
+        # Check if student has grades
+        has_grades = enrollment.semester_1 or enrollment.semester_2 or enrollment.semester_3
+        
+        grades_data.append({
+            'subject': enrollment.subject.name,
+            'teacher': enrollment.teacher,
+            'semester_1': enrollment.semester_1,
+            'semester_2': enrollment.semester_2,
+            'semester_3': enrollment.semester_3,
+            'promedio': promedio,
+            'has_grades': has_grades
+        })
+        
+        if has_grades:
+            total_promedio += promedio
+            total_subjects += 1
+    
+    # Calculate general average
+    general_average = round(total_promedio / total_subjects, 2) if total_subjects > 0 else 0
+    
+    return render_template('student_my_grades.html', grades_data=grades_data, student=student, general_average=general_average)
