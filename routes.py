@@ -701,11 +701,14 @@ def teacher_grades():
                 sem2 = float(enrollment.semester_2) if enrollment.semester_2 else 0
                 sem3 = float(enrollment.semester_3) if enrollment.semester_3 else 0
                 total_score = round((sem1 + sem2 + sem3) / 3, 2)
+                # Check if any semester has a value
+                has_grades = enrollment.semester_1 or enrollment.semester_2 or enrollment.semester_3
                 students_with_scores.append({
                     'student': student,
                     'enrollment': enrollment,
                     'total_score': total_score,
-                    'has_enrollment': True
+                    'has_enrollment': True,
+                    'has_grades': has_grades
                 })
         
         # Always add grade to grades_data, even if no students are enrolled yet

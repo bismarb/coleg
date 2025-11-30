@@ -152,7 +152,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-center font-bold text-lg">
                                     <span class="promedio-valor text-2xl" id="promedio-{{ item.enrollment.id }}">
-                                        {% if item.total_score > 0 %}
+                                        {% if item.has_grades %}
                                             <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">{{ item.total_score }}</span>
                                         {% else %}
                                             <span class="text-gray-400">-</span>
