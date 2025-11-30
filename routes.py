@@ -698,6 +698,69 @@ def get_teacher_specialization(teacher_id):
         return jsonify({'error': str(e)}), 400
 
 
+@app.route('/admin/all-grades', methods=['GET', 'POST'])
+@login_required
+def admin_all_grades():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get all enrollments with all data
+    enrollments = Enrollment.query.all()
+    
+    # Group by grade
+    grades_data = {}
+    for enrollment in enrollments:
+        grade = enrollment.grade
+        if grade.id not in grades_data:
+            grades_data[grade.id] = {
+                'grade': grade,
+                'enrollments': []
+            }
+        
+        # Calculate average
+        sem1 = float(enrollment.semester_1) if enrollment.semester_1 else 0
+        sem2 = float(enrollment.semester_2) if enrollment.semester_2 else 0
+        sem3 = float(enrollment.semester_3) if enrollment.semester_3 else 0
+        total_score = round((sem1 + sem2 + sem3) / 3, 2)
+        
+        grades_data[grade.id]['enrollments'].append({
+            'enrollment': enrollment,
+            'total_score': total_score
+        })
+    
+    if request.method == 'POST':
+        try:
+            action = request.form.get('action')
+            
+            if action == 'update_grades':
+                enrollment_id = request.form.get('enrollment_id')
+                semester_1 = request.form.get('semester_1')
+                semester_2 = request.form.get('semester_2')
+                semester_3 = request.form.get('semester_3')
+                
+                enrollment = Enrollment.query.get(enrollment_id)
+                if enrollment:
+                    if semester_1:
+                        enrollment.semester_1 = float(semester_1)
+                    if semester_2:
+                        enrollment.semester_2 = float(semester_2)
+                    if semester_3:
+                        enrollment.semester_3 = float(semester_3)
+                    
+                    db.session.commit()
+                    flash('Calificaciones actualizadas exitosamente', 'success')
+                else:
+                    flash('Inscripción no encontrada', 'error')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('admin_all_grades'))
+    
+    return render_template('admin_all_grades.html', grades_data=grades_data)
+
+
 @app.route('/teacher/grades', methods=['GET', 'POST'])
 @login_required
 def teacher_grades():

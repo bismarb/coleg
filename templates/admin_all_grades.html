@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-star text-blue-600 mr-2"></i>Calificaciones de Todos los Estudiantes</h1>
+        <div class="w-80">
+            <input type="text" placeholder="🔍 Búsqueda de estudiantes..." id="global-search" class="w-full px-4 py-3 rounded-lg border-2 border-blue-300 text-gray-800 text-sm focus:outline-none focus:border-blue-600 shadow-sm">
+        </div>
+    </div>
+
+    {% if grades_data %}
+        {% for grade_id, data in grades_data.items() %}
+        <div class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-left">Estudiante</th>
+                            <th class="px-6 py-4 text-left">Profesor</th>
+                            <th class="px-6 py-4 text-left">Materia</th>
+                            <th class="px-6 py-4 text-center">1er Semestre</th>
+                            <th class="px-6 py-4 text-center">2do Semestre</th>
+                            <th class="px-6 py-4 text-center">3er Semestre</th>
+                            <th class="px-6 py-4 text-center">Promedio</th>
+                            <th class="px-6 py-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for item in data.enrollments %}
+                        <tr class="hover:bg-sky-50 student-row" data-student-name="{{ item.enrollment.student.apellido_paterno or '' }} {{ item.enrollment.student.apellido_materno or '' }} {{ item.enrollment.student.user.name }}">
+                            <td class="px-6 py-4 font-semibold">{{ item.enrollment.student.apellido_paterno or '' }} {{ item.enrollment.student.apellido_materno or '' }} {{ item.enrollment.student.user.name }}</td>
+                            <td class="px-6 py-4 text-sm">{{ item.enrollment.teacher.apellido_paterno or '' }} {{ item.enrollment.teacher.apellido_materno or '' }} {{ item.enrollment.teacher.user.name }}</td>
+                            <td class="px-6 py-4 text-sm"><span class="px-3 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold">{{ item.enrollment.subject.name }}</span></td>
+                            <form method="POST" class="contents" id="form-{{ item.enrollment.id }}">
+                                <input type="hidden" name="action" value="update_grades">
+                                <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
+                                <td class="px-6 py-4">
+                                    <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4 text-center font-bold text-lg">
+                                    <span class="promedio-valor text-2xl" id="promedio-{{ item.enrollment.id }}">
+                                        {% if item.total_score > 0 %}
+                                            <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">{{ item.total_score }}</span>
+                                        {% else %}
+                                            <span class="text-gray-400">-</span>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <button type="button" class="toggle-edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-bold" data-enrollment-id="{{ item.enrollment.id }}">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                </td>
+                            </form>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
+        <p class="font-semibold">No hay calificaciones registradas</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Búsqueda general
+const globalSearch = document.getElementById('global-search');
+globalSearch.addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const allRows = document.querySelectorAll('.student-row');
+    
+    allRows.forEach(row => {
+        const studentName = row.getAttribute('data-student-name').toLowerCase();
+        if (studentName.includes(searchTerm) || searchTerm === '') {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Toggle edit mode
+document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const enrollmentId = this.getAttribute('data-enrollment-id');
+        const inputs = document.querySelectorAll('.edit-mode-' + enrollmentId);
+        const isDisabled = inputs[0].disabled;
+        
+        inputs.forEach(input => {
+            input.disabled = !isDisabled;
+            if (!isDisabled) {
+                input.classList.add('border-yellow-500', 'border-4', 'bg-yellow-50');
+            } else {
+                input.classList.remove('border-yellow-500', 'border-4', 'bg-yellow-50');
+            }
+        });
+        
+        // Cambiar texto del botón
+        if (isDisabled) {
+            this.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            this.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            this.classList.add('bg-green-500', 'hover:bg-green-600');
+        } else {
+            this.innerHTML = '<i class="fas fa-edit"></i> Editar';
+            this.classList.remove('bg-green-500', 'hover:bg-green-600');
+            this.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }
+    });
+});
+
+// Auto-save on semester change
+document.querySelectorAll('.semester-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const enrollmentId = this.getAttribute('data-enrollment-id');
+        const form = document.getElementById('form-' + enrollmentId);
+        
+        if (form) {
+            const sem1 = parseFloat(form.querySelector('input[name="semester_1"]').value) || 0;
+            const sem2 = parseFloat(form.querySelector('input[name="semester_2"]').value) || 0;
+            const sem3 = parseFloat(form.querySelector('input[name="semester_3"]').value) || 0;
+            
+            // Calcular promedio dividiendo siempre entre 3
+            const promedio = Math.round(((sem1 + sem2 + sem3) / 3) * 100) / 100;
+            
+            // Mostrar promedio
+            const promediElement = document.getElementById('promedio-' + enrollmentId);
+            if (promediElement) {
+                if (promedio > 0) {
+                    const colorClass = promedio >= 60 ? 'text-green-600' : 'text-red-600';
+                    promediElement.innerHTML = `<span class="${colorClass}">${promedio.toFixed(2)}</span>`;
+                } else {
+                    promediElement.innerHTML = '<span class="text-gray-400">-</span>';
+                }
+            }
+            
+            // Guardar automáticamente
+            const formData = new FormData(form);
+            fetch('{{ url_for("admin_all_grades") }}', {
+                method: 'POST',
+                body: formData
+            }).catch(error => console.error('Error al guardar:', error));
+        }
+    });
+});
+</script>
+{% endblock %}
