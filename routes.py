@@ -552,7 +552,8 @@ def edit_schedule(schedule_id):
     teachers = Teacher.query.filter(
         (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
     ).all()
-    return render_template('edit_schedule.html', schedule=schedule, teachers=teachers)
+    grades = Grade.query.all()
+    return render_template('edit_schedule.html', schedule=schedule, teachers=teachers, grades=grades)
 
 
 @app.route('/schedule/<schedule_id>/delete', methods=['POST'])
