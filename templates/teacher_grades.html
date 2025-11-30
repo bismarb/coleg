@@ -38,13 +38,13 @@
                             <form method="POST" class="contents" id="form-{{ item.enrollment.id }}">
                                 <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                    <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-white border-2 border-blue-300 rounded text-sm w-20 text-center hover:border-blue-500 focus:border-blue-600 focus:outline-none" data-enrollment-id="{{ item.enrollment.id }}">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                    <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-white border-2 border-blue-300 rounded text-sm w-20 text-center hover:border-blue-500 focus:border-blue-600 focus:outline-none" data-enrollment-id="{{ item.enrollment.id }}">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                    <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-white border-2 border-blue-300 rounded text-sm w-20 text-center hover:border-blue-500 focus:border-blue-600 focus:outline-none" data-enrollment-id="{{ item.enrollment.id }}">
                                 </td>
                                 <td class="px-6 py-4 text-center font-bold text-lg">
                                     <span class="promedio-valor text-2xl" id="promedio-{{ item.enrollment.id }}">
@@ -93,36 +93,7 @@ globalSearch.addEventListener('keyup', function() {
     });
 });
 
-// Toggle edit mode
-document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const enrollmentId = this.getAttribute('data-enrollment-id');
-        const inputs = document.querySelectorAll('.edit-mode-' + enrollmentId);
-        const isDisabled = inputs[0].disabled;
-        
-        inputs.forEach(input => {
-            input.disabled = !isDisabled;
-            if (!isDisabled) {
-                input.classList.add('border-yellow-500', 'border-4', 'bg-yellow-50');
-            } else {
-                input.classList.remove('border-yellow-500', 'border-4', 'bg-yellow-50');
-            }
-        });
-        
-        // Cambiar texto del botón
-        if (isDisabled) {
-            this.innerHTML = '<i class="fas fa-save"></i> Guardar';
-            this.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-            this.classList.add('bg-green-500', 'hover:bg-green-600');
-        } else {
-            this.innerHTML = '<i class="fas fa-edit"></i> Modificar';
-            this.classList.remove('bg-green-500', 'hover:bg-green-600');
-            this.classList.add('bg-blue-500', 'hover:bg-blue-600');
-        }
-    });
-});
-
+// Auto-save on semester change
 document.querySelectorAll('.semester-input').forEach(input => {
     input.addEventListener('change', function() {
         const enrollmentId = this.getAttribute('data-enrollment-id');
