@@ -579,6 +579,23 @@ def view_schedule():
         (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
     ).all()
     
+    # Create a map of subject_id -> teachers who teach it with their specializations
+    subject_teachers_map = {}
+    for subject in subjects:
+        subject_teachers_map[subject.id] = []
+        # Find all courses for this subject
+        subject_courses = Course.query.filter_by(subject_id=subject.id).all()
+        for course in subject_courses:
+            teacher = Teacher.query.get(course.teacher_id)
+            if teacher and any(t.id == teacher.id for t in teachers):
+                # Add if not already in list
+                if not any(t['id'] == teacher.id for t in subject_teachers_map[subject.id]):
+                    subject_teachers_map[subject.id].append({
+                        'id': teacher.id,
+                        'name': teacher.user.name,
+                        'specialization': teacher.specialization or 'Sin especialización'
+                    })
+    
     # Organize schedules by grade
     schedules_by_grade = {}
     for grade in grades:
@@ -591,7 +608,7 @@ def view_schedule():
             'schedules': grade_schedules
         }
     
-    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers)
+    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers, subject_teachers_map=subject_teachers_map)
 
 
 @app.route('/schedule/add', methods=['POST'])
