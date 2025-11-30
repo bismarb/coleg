@@ -378,4 +378,84 @@ def mark_attendance():
 @login_required
 def view_schedule():
     schedules = Schedule.query.all()
-    return render_template('schedule.html', schedules=schedules)
+    courses = Course.query.all()
+    return render_template('schedules.html', schedules=schedules, courses=courses)
+
+
+@app.route('/schedule/add', methods=['POST'])
+@login_required
+def add_schedule():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        course_id = request.form.get('course_id')
+        day_of_week = request.form.get('day_of_week')
+        start_time = request.form.get('start_time')
+        end_time = request.form.get('end_time')
+        classroom = request.form.get('classroom')
+        
+        schedule = Schedule(course_id=course_id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
+        db.session.add(schedule)
+        db.session.commit()
+        
+        flash('Horario agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('view_schedule'))
+
+
+@app.route('/schedule/<schedule_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_schedule(schedule_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('view_schedule'))
+    
+    schedule = Schedule.query.get(schedule_id)
+    if not schedule:
+        flash('Horario no encontrado', 'error')
+        return redirect(url_for('view_schedule'))
+    
+    if request.method == 'POST':
+        try:
+            schedule.course_id = request.form.get('course_id')
+            schedule.day_of_week = request.form.get('day_of_week')
+            schedule.start_time = request.form.get('start_time')
+            schedule.end_time = request.form.get('end_time')
+            schedule.classroom = request.form.get('classroom')
+            
+            db.session.commit()
+            flash('Horario actualizado', 'success')
+            return redirect(url_for('view_schedule'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    courses = Course.query.all()
+    return render_template('edit_schedule.html', schedule=schedule, courses=courses)
+
+
+@app.route('/schedule/<schedule_id>/delete', methods=['POST'])
+@login_required
+def delete_schedule(schedule_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        schedule = Schedule.query.get(schedule_id)
+        if not schedule:
+            flash('Horario no encontrado', 'error')
+            return redirect(url_for('view_schedule'))
+        
+        db.session.delete(schedule)
+        db.session.commit()
+        
+        flash('Horario eliminado', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('view_schedule'))
