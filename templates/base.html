@@ -61,33 +61,33 @@
                 </li>
                 {% if current_user.role == 'admin' %}
                 <li>
-                    <a href="{{ url_for('students_page') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                    <a href="{{ url_for('students') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-users text-lg"></i>
                         <span>Estudiantes</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('teachers_page') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                    <a href="{{ url_for('teachers') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-chalkboard-user text-lg"></i>
                         <span>Profesores</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('departments_page') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                    <a href="{{ url_for('departments') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-building text-lg"></i>
                         <span>Departamentos</span>
                     </a>
                 </li>
                 {% endif %}
                 <li>
-                    <a href="{{ url_for('courses_page') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                    <a href="{{ url_for('courses') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-book text-lg"></i>
                         <span>Cursos</span>
                     </a>
                 </li>
                 {% if current_user.role in ['admin', 'teacher'] %}
                 <li>
-                    <a href="{{ url_for('grades_page') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                    <a href="{{ url_for('grades') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-graduation-cap text-lg"></i>
                         <span>Calificaciones</span>
                     </a>
@@ -112,6 +112,16 @@
     </div>
     {% else %}
     <main class="flex justify-center items-center min-h-screen">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-lg flex items-center gap-3 {% if category == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% else %}bg-green-100 text-green-800 border-l-4 border-green-500{% endif %}">
+                        <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
     {% endif %}
