@@ -633,8 +633,10 @@ def teacher_grades():
             enrollment = Enrollment.query.filter_by(student_id=student.id, teacher_id=teacher.id).first()
             
             if enrollment:
-                assessments = Assessment.query.filter_by(enrollment_id=enrollment.id).all()
-                total_score = sum(float(a.score) for a in assessments) / len(assessments) if assessments else 0
+                # Calculate average from three semesters
+                semesters = [enrollment.semester_1, enrollment.semester_2, enrollment.semester_3]
+                valid_semesters = [float(s) for s in semesters if s is not None]
+                total_score = sum(valid_semesters) / len(valid_semesters) if valid_semesters else 0
                 students_with_scores.append({
                     'student': student,
                     'enrollment': enrollment,
@@ -658,18 +660,23 @@ def teacher_grades():
     if request.method == 'POST':
         try:
             enrollment_id = request.form.get('enrollment_id')
-            score = request.form.get('score')
-            assessment_date = request.form.get('assessment_date')
+            semester_1 = request.form.get('semester_1')
+            semester_2 = request.form.get('semester_2')
+            semester_3 = request.form.get('semester_3')
             
-            assessment = Assessment(
-                enrollment_id=enrollment_id,
-                assessment_type='Calificación',
-                score=float(score),
-                assessment_date=assessment_date
-            )
-            db.session.add(assessment)
-            db.session.commit()
-            flash('Calificación registrada exitosamente', 'success')
+            enrollment = Enrollment.query.get(enrollment_id)
+            if enrollment:
+                if semester_1:
+                    enrollment.semester_1 = float(semester_1)
+                if semester_2:
+                    enrollment.semester_2 = float(semester_2)
+                if semester_3:
+                    enrollment.semester_3 = float(semester_3)
+                
+                db.session.commit()
+                flash('Calificaciones registradas exitosamente', 'success')
+            else:
+                flash('Error: Inscripción no encontrada', 'error')
         except Exception as e:
             db.session.rollback()
             flash(f'Error: {str(e)}', 'error')
