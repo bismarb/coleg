@@ -37,7 +37,7 @@
                         <td class="px-6 py-4 text-sm">
                             <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ schedule.day_of_week }}</span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-semibold">{{ schedule.course.teacher.user.name }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold">{{ schedule.course.teacher.user.name }} - {{ schedule.course.teacher.specialization or 'Sin especialización' }}</td>
                         <td class="px-6 py-4 text-sm">{{ schedule.start_time }}</td>
                         <td class="px-6 py-4 text-sm">{{ schedule.end_time }}</td>
                         <td class="px-6 py-4 text-sm">{{ schedule.classroom or '-' }}</td>
