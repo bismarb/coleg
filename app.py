@@ -1,13 +1,13 @@
 import os
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, render_template, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_session import Session
-from datetime import timedelta
+from datetime import timedelta, date
 from models import db, User, Student, Teacher, Department, Subject, Course, Enrollment, Grade, AcademicPeriod, Schedule, Assignment, Attendance
 from auth import hash_password, check_password
 from storage import Storage
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://localhost/academic_management')
@@ -33,81 +33,147 @@ storage = Storage()
 def load_user(user_id):
     return User.query.get(user_id)
 
-# ==================== AUTH ROUTES ====================
+# ==================== PAGE ROUTES ====================
 
-@app.route('/api/auth/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name')
-    role = data.get('role')
+@app.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
 
-    if not all([email, password, name, role]):
-        return jsonify({'message': 'Todos los campos son requeridos'}), 400
-
-    if User.query.filter_by(email=email).first():
-        return jsonify({'message': 'El correo ya está registrado'}), 400
-
-    user = User(
-        email=email,
-        password=hash_password(password),
-        name=name,
-        role=role
-    )
-    db.session.add(user)
-    db.session.commit()
-
-    # Create role-specific record
-    if role == 'student':
-        student = Student(
-            user_id=user.id,
-            student_code=f'STU-{user.id}',
-            grade='Por asignar',
-            enrollment_date=db.func.current_date(),
-            status='active'
-        )
-        db.session.add(student)
-    elif role == 'teacher':
-        teacher = Teacher(
-            user_id=user.id,
-            teacher_code=f'TCH-{user.id}',
-            hire_date=db.func.current_date(),
-            status='active'
-        )
-        db.session.add(teacher)
-
-    db.session.commit()
-
-    login_user(user)
-    return jsonify({'user': user.to_dict()}), 201
-
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
-    user = User.query.filter_by(email=email).first()
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        
+        if user and check_password(password, user.password):
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Credenciales incorrectas', 'error')
     
-    if not user or not check_password(password, user.password):
-        return jsonify({'message': 'Credenciales incorrectas'}), 401
+    return render_template('login.html')
 
-    login_user(user)
-    return jsonify({'user': user.to_dict()})
+@app.route('/register', methods=['GET', 'POST'])
+def register_page():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role')
 
-@app.route('/api/auth/logout', methods=['POST'])
+        if not all([email, password, name, role]):
+            flash('Todos los campos son requeridos', 'error')
+            return redirect(url_for('register_page'))
+
+        if User.query.filter_by(email=email).first():
+            flash('El correo ya está registrado', 'error')
+            return redirect(url_for('register_page'))
+
+        user = User(
+            email=email,
+            password=hash_password(password),
+            name=name,
+            role=role
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        # Create role-specific record
+        if role == 'student':
+            student = Student(
+                user_id=user.id,
+                student_code=f'STU-{user.id[:8]}',
+                grade='Por asignar',
+                enrollment_date=date.today(),
+                status='active'
+            )
+            db.session.add(student)
+        elif role == 'teacher':
+            teacher = Teacher(
+                user_id=user.id,
+                teacher_code=f'TCH-{user.id[:8]}',
+                hire_date=date.today(),
+                status='active'
+            )
+            db.session.add(teacher)
+
+        db.session.commit()
+        login_user(user)
+        flash('Cuenta creada exitosamente', 'success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('register.html')
+
+@app.route('/logout', methods=['POST', 'GET'])
 @login_required
 def logout():
     logout_user()
-    return jsonify({'message': 'Sesión cerrada correctamente'})
+    flash('Sesión cerrada correctamente', 'success')
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    stats = storage.get_statistics()
+    return render_template('dashboard.html', stats=stats)
+
+@app.route('/students')
+@login_required
+def students_page():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    students = Student.query.all()
+    return render_template('students.html', students=students)
+
+@app.route('/teachers')
+@login_required
+def teachers_page():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    teachers = Teacher.query.all()
+    return render_template('teachers.html', teachers=teachers)
+
+@app.route('/departments')
+@login_required
+def departments_page():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    departments = Department.query.all()
+    return render_template('departments.html', departments=departments)
+
+@app.route('/courses')
+@login_required
+def courses_page():
+    courses = Course.query.all()
+    return render_template('courses.html', courses=courses)
+
+@app.route('/grades')
+@login_required
+def grades_page():
+    if current_user.role not in ['admin', 'teacher', 'student']:
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    grades = Grade.query.all()
+    return render_template('grades.html', grades=grades)
+
+# ==================== API ROUTES ====================
 
 @app.route('/api/auth/me', methods=['GET'])
 @login_required
 def get_me():
     return jsonify({'user': current_user.to_dict()})
 
-# ==================== STUDENTS ROUTES ====================
+# ==================== STUDENTS API ====================
 
 @app.route('/api/students', methods=['GET'])
 @login_required
@@ -151,7 +217,7 @@ def delete_student(student_id):
     db.session.commit()
     return jsonify({'message': 'Estudiante eliminado'})
 
-# ==================== TEACHERS ROUTES ====================
+# ==================== TEACHERS API ====================
 
 @app.route('/api/teachers', methods=['GET'])
 @login_required
@@ -195,7 +261,7 @@ def delete_teacher(teacher_id):
     db.session.commit()
     return jsonify({'message': 'Profesor eliminado'})
 
-# ==================== DEPARTMENTS ROUTES ====================
+# ==================== DEPARTMENTS API ====================
 
 @app.route('/api/departments', methods=['GET'])
 @login_required
@@ -215,7 +281,7 @@ def create_department():
     db.session.commit()
     return jsonify(department.to_dict()), 201
 
-# ==================== SUBJECTS ROUTES ====================
+# ==================== SUBJECTS API ====================
 
 @app.route('/api/subjects', methods=['GET'])
 @login_required
@@ -235,7 +301,7 @@ def create_subject():
     db.session.commit()
     return jsonify(subject.to_dict()), 201
 
-# ==================== COURSES ROUTES ====================
+# ==================== COURSES API ====================
 
 @app.route('/api/courses', methods=['GET'])
 @login_required
@@ -279,7 +345,7 @@ def delete_course(course_id):
     db.session.commit()
     return jsonify({'message': 'Curso eliminado'})
 
-# ==================== GRADES ROUTES ====================
+# ==================== GRADES API ====================
 
 @app.route('/api/grades', methods=['GET'])
 @login_required

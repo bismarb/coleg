@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Departamentos - Academia{% endblock %}
+
+{% block content %}
+<div>
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Departamentos</h1>
+        {% if current_user.role == 'admin' %}
+        <button onclick="openModal('newDeptModal')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <i class="fas fa-plus"></i> Nuevo Departamento
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for dept in departments %}
+        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-blue-600 mb-2">{{ dept.name }}</h3>
+            <p class="text-sm text-gray-600 mb-2">{{ dept.description or 'Sin descripción' }}</p>
+            <p class="text-sm text-gray-600"><strong>Director:</strong> {{ dept.head or 'Por asignar' }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if current_user.role == 'admin' %}
+<div id="newDeptModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-8 max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Nuevo Departamento</h2>
+        <form method="POST" action="{{ url_for('create_department') }}" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium">Nombre</label>
+                <input type="text" name="name" required class="w-full px-4 py-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Descripción</label>
+                <textarea name="description" class="w-full px-4 py-2 border rounded"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Director</label>
+                <input type="text" name="head" class="w-full px-4 py-2 border rounded">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Guardar</button>
+                <button type="button" onclick="closeModal('newDeptModal')" class="flex-1 bg-gray-300 py-2 rounded">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+</script>
+{% endblock %}

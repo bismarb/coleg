@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión Académica{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-sky-50">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="text-2xl font-bold">📚 Academia</div>
+            <div class="flex gap-4 items-center">
+                {% if current_user.is_authenticated %}
+                <span class="text-sm">{{ current_user.name }} ({{ current_user.role }})</span>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Cerrar sesión</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if current_user.is_authenticated %}
+    <div class="flex min-h-screen">
+        <aside class="w-64 bg-blue-700 text-white p-4">
+            <ul class="space-y-2">
+                <li><a href="{{ url_for('dashboard') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('students_page') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-users"></i> Estudiantes</a></li>
+                <li><a href="{{ url_for('teachers_page') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-chalkboard-user"></i> Profesores</a></li>
+                <li><a href="{{ url_for('departments_page') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-building"></i> Departamentos</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('courses_page') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-book"></i> Cursos</a></li>
+                {% if current_user.role in ['admin', 'teacher'] %}
+                <li><a href="{{ url_for('grades_page') }}" class="block p-2 rounded hover:bg-blue-600"><i class="fas fa-graduation-cap"></i> Calificaciones</a></li>
+                {% endif %}
+            </ul>
+        </aside>
+
+        <main class="flex-1 p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    <main class="flex justify-center items-center min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+    {% endif %}
+</body>
+</html>
