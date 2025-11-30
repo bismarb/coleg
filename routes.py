@@ -571,6 +571,8 @@ def view_schedule():
     schedules = Schedule.query.all()
     courses = Course.query.all()
     grades = Grade.query.order_by(Grade.level).all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.all()
     
     # Organize schedules by grade
     schedules_by_grade = {}
@@ -584,7 +586,7 @@ def view_schedule():
             'schedules': grade_schedules
         }
     
-    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses)
+    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers)
 
 
 @app.route('/schedule/add', methods=['POST'])
@@ -594,13 +596,20 @@ def add_schedule():
         return jsonify({'error': 'Denegado'}), 403
     
     try:
-        course_id = request.form.get('course_id')
         day_of_week = request.form.get('day_of_week')
+        subject_id = request.form.get('subject_id')
+        teacher_id = request.form.get('teacher_id')
         start_time = request.form.get('start_time')
         end_time = request.form.get('end_time')
         classroom = request.form.get('classroom')
         
-        schedule = Schedule(course_id=course_id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
+        # Find the course matching subject_id and teacher_id
+        course = Course.query.filter_by(subject_id=subject_id, teacher_id=teacher_id).first()
+        if not course:
+            flash('No se encontró un curso con esa materia y profesor', 'error')
+            return redirect(url_for('view_schedule'))
+        
+        schedule = Schedule(course_id=course.id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
         db.session.add(schedule)
         db.session.commit()
         
