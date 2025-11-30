@@ -21,9 +21,12 @@
                         <tr>
                             <th class="px-6 py-4 text-left">Estudiante</th>
                             <th class="px-6 py-4 text-left">Grado</th>
-                            <th class="px-6 py-4 text-center">1er Semestre</th>
-                            <th class="px-6 py-4 text-center">2do Semestre</th>
-                            <th class="px-6 py-4 text-center">3er Semestre</th>
+                            <th class="px-6 py-4 text-center">1er Sem.</th>
+                            <th class="px-6 py-4 text-center">Nota 1</th>
+                            <th class="px-6 py-4 text-center">2do Sem.</th>
+                            <th class="px-6 py-4 text-center">Nota 2</th>
+                            <th class="px-6 py-4 text-center">3er Sem.</th>
+                            <th class="px-6 py-4 text-center">Nota 3</th>
                             <th class="px-6 py-4 text-center">Promedio</th>
                             <th class="px-6 py-4 text-center">Acciones</th>
                         </tr>
@@ -42,10 +45,19 @@
                                     <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
                                 </td>
                                 <td class="px-6 py-4">
+                                    <input type="text" name="nota_semester_1" value="{{ item.enrollment.nota_semester_1 or '' }}" placeholder="-" class="nota-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-32 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4">
                                     <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
                                 </td>
                                 <td class="px-6 py-4">
+                                    <input type="text" name="nota_semester_2" value="{{ item.enrollment.nota_semester_2 or '' }}" placeholder="-" class="nota-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-32 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4">
                                     <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <input type="text" name="nota_semester_3" value="{{ item.enrollment.nota_semester_3 or '' }}" placeholder="-" class="nota-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-32 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
                                 </td>
                                 <td class="px-6 py-4 text-center font-bold text-lg">
                                     <span class="promedio-valor text-2xl" id="promedio-{{ item.enrollment.id }}">
@@ -63,7 +75,7 @@
                                 </td>
                             </form>
                             {% else %}
-                            <td colspan="5" class="px-6 py-4">
+                            <td colspan="10" class="px-6 py-4">
                                 <span class="text-gray-400 text-sm italic">No inscrito contigo</span>
                             </td>
                             {% endif %}

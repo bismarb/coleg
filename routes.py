@@ -664,6 +664,9 @@ def teacher_grades():
             semester_1 = request.form.get('semester_1')
             semester_2 = request.form.get('semester_2')
             semester_3 = request.form.get('semester_3')
+            nota_semester_1 = request.form.get('nota_semester_1')
+            nota_semester_2 = request.form.get('nota_semester_2')
+            nota_semester_3 = request.form.get('nota_semester_3')
             
             enrollment = Enrollment.query.get(enrollment_id)
             if enrollment:
@@ -673,6 +676,12 @@ def teacher_grades():
                     enrollment.semester_2 = float(semester_2)
                 if semester_3:
                     enrollment.semester_3 = float(semester_3)
+                if nota_semester_1:
+                    enrollment.nota_semester_1 = nota_semester_1
+                if nota_semester_2:
+                    enrollment.nota_semester_2 = nota_semester_2
+                if nota_semester_3:
+                    enrollment.nota_semester_3 = nota_semester_3
                 
                 db.session.commit()
                 flash('Calificaciones registradas exitosamente', 'success')
