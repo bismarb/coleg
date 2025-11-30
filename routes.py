@@ -148,3 +148,97 @@ def departments():
     
     depts = Department.query.all()
     return render_template('departments.html', departments=depts)
+
+
+@app.route('/teachers/add', methods=['POST'])
+@login_required
+def create_teacher():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denied'}), 403
+    
+    try:
+        name = request.form.get('name')
+        email = f"{name.lower().replace(' ', '')}@teacher.edu"
+        
+        user = User(email=email, name=name, password=hash_password('123456'), role='teacher')
+        db.session.add(user)
+        db.session.flush()
+        
+        teacher = Teacher(user_id=user.id, hire_date=date.today())
+        db.session.add(teacher)
+        db.session.commit()
+        
+        flash('Teacher added', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('teachers'))
+
+
+@app.route('/courses/add', methods=['POST'])
+@login_required
+def create_course():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denied'}), 403
+    
+    try:
+        name = request.form.get('name')
+        code = request.form.get('code')
+        status = request.form.get('status', 'active')
+        
+        course = Course(name=name, code=code, status=status)
+        db.session.add(course)
+        db.session.commit()
+        
+        flash('Course added', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('courses'))
+
+
+@app.route('/departments/add', methods=['POST'])
+@login_required
+def create_department():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denied'}), 403
+    
+    try:
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        
+        dept = Department(name=name, description=description)
+        db.session.add(dept)
+        db.session.commit()
+        
+        flash('Department added', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('departments'))
+
+
+@app.route('/grades/add', methods=['POST'])
+@login_required
+def create_grade():
+    if current_user.role not in ['admin', 'teacher']:
+        return jsonify({'error': 'Denied'}), 403
+    
+    try:
+        student_id = request.form.get('student_id')
+        course_id = request.form.get('course_id')
+        grade_value = request.form.get('grade_value')
+        
+        grade = Grade(student_id=student_id, course_id=course_id, grade_value=grade_value)
+        db.session.add(grade)
+        db.session.commit()
+        
+        flash('Grade added', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('grades'))
