@@ -682,26 +682,24 @@ def teacher_grades():
     # Get all courses for this teacher
     courses = Course.query.filter_by(teacher_id=teacher.id).all()
     
-    # Get all grades from these courses and all students in those grades
+    # Get only enrollments from this teacher's courses
     grades_data = {}
     for course in courses:
         grade = course.grade_rel
         if grade.id not in grades_data:
-            students = Student.query.filter_by(grade_id=grade.id).all()
-            enrollments = Enrollment.query.join(Course).filter(Course.grade_id == grade.id).all()
+            # Get only enrollments from THIS TEACHER'S courses
+            enrollments = Enrollment.query.filter(Enrollment.course_id.in_([c.id for c in courses])).all()
             
-            # Calculate total scores for each student
+            # Calculate total scores for each enrollment (student in teacher's course)
             students_with_scores = []
-            for student in students:
-                enrollment = next((e for e in enrollments if e.student_id == student.id), None)
-                if enrollment:
-                    assessments = Assessment.query.filter_by(enrollment_id=enrollment.id).all()
-                    total_score = sum(float(a.score) for a in assessments) / len(assessments) if assessments else 0
-                    students_with_scores.append({
-                        'student': student,
-                        'enrollment': enrollment,
-                        'total_score': round(total_score, 2)
-                    })
+            for enrollment in enrollments:
+                assessments = Assessment.query.filter_by(enrollment_id=enrollment.id).all()
+                total_score = sum(float(a.score) for a in assessments) / len(assessments) if assessments else 0
+                students_with_scores.append({
+                    'student': enrollment.student,
+                    'enrollment': enrollment,
+                    'total_score': round(total_score, 2)
+                })
             
             grades_data[grade.id] = {
                 'grade': grade,
@@ -747,16 +745,17 @@ def teacher_attendance():
     # Get all courses for this teacher
     courses = Course.query.filter_by(teacher_id=teacher.id).all()
     
-    # Get all grades from these courses and all students in those grades
+    # Get only enrollments from this teacher's courses, grouped by grade
     grades_data = {}
     for course in courses:
         grade = course.grade_rel
         if grade.id not in grades_data:
-            students = Student.query.filter_by(grade_id=grade.id).all()
+            # Get only enrollments from THIS TEACHER'S courses
+            enrollments = Enrollment.query.filter(Enrollment.course_id.in_([c.id for c in courses])).all()
+            
             grades_data[grade.id] = {
                 'grade': grade,
-                'students': students,
-                'enrollments': Enrollment.query.join(Course).filter(Course.grade_id == grade.id).all()
+                'enrollments': enrollments
             }
     
     if request.method == 'POST':

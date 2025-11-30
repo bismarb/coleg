@@ -16,19 +16,16 @@
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-green-600 to-green-700 text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left">Estudiante</th>
+                            <th class="px-6 py-4 text-left">Inscrito</th>
                             <th class="px-6 py-4 text-left">Fecha</th>
                             <th class="px-6 py-4 text-left">Estado</th>
-                            <th class="px-6 py-4 text-left">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        {% for student in data.students %}
-                        {% set enrollment = data.enrollments|selectattr('student_id', 'equalto', student.id)|first %}
+                        {% for enrollment in data.enrollments %}
                         <tr class="hover:bg-sky-50">
-                            <td class="px-6 py-4 font-semibold">{{ student.user.name }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ enrollment.student.user.name }}</td>
                             <td class="px-6 py-4">
-                                {% if enrollment %}
                                 <form method="POST" class="flex gap-2 items-center" style="display:flex; gap: 0.5rem;">
                                     <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
                                     <input type="date" name="attendance_date" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm">
@@ -43,12 +40,8 @@
                                         <i class="fas fa-save"></i>
                                     </button>
                                 </form>
-                                {% else %}
-                                <span class="text-gray-400 text-sm">No inscrito en cursos</span>
-                                {% endif %}
                             </td>
                             <td class="px-6 py-4 text-sm">-</td>
-                            <td class="px-6 py-4">-</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -58,8 +51,8 @@
         {% endfor %}
     {% else %}
     <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
-        <p class="font-semibold">No hay cursos asignados</p>
-        <p class="text-sm">Solicita al administrador que te asigne cursos para registrar asistencia.</p>
+        <p class="font-semibold">No hay estudiantes inscritos</p>
+        <p class="text-sm">No tienes estudiantes inscritos en tus cursos aún.</p>
     </div>
     {% endif %}
 </div>
