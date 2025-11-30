@@ -22,6 +22,7 @@
                             <th class="px-6 py-4 text-center">2do Semestre</th>
                             <th class="px-6 py-4 text-center">3er Semestre</th>
                             <th class="px-6 py-4 text-center">Promedio</th>
+                            <th class="px-6 py-4 text-center">Guardar</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
@@ -32,16 +33,25 @@
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ item.student.grade.name }}</span>
                             </td>
                             {% if item.has_enrollment %}
-                            <form method="POST" class="contents">
+                            <form method="POST" class="contents" id="form-{{ item.enrollment.id }}">
                                 <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center">
+                                    <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center" data-enrollment-id="{{ item.enrollment.id }}">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center">
+                                    <input type="number" name="semester_2" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_2 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center" data-enrollment-id="{{ item.enrollment.id }}">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center">
+                                    <input type="number" name="semester_3" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_3 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center" data-enrollment-id="{{ item.enrollment.id }}">
+                                </td>
+                                <td class="px-6 py-4 text-center font-bold text-lg">
+                                    <span class="promedio-valor text-2xl" id="promedio-{{ item.enrollment.id }}">
+                                        {% if item.total_score > 0 %}
+                                            <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">{{ item.total_score }}</span>
+                                        {% else %}
+                                            <span class="text-gray-400">-</span>
+                                        {% endif %}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold">
@@ -50,19 +60,10 @@
                                 </td>
                             </form>
                             {% else %}
-                            <td colspan="4" class="px-6 py-4">
+                            <td colspan="5" class="px-6 py-4">
                                 <span class="text-gray-400 text-sm italic">No inscrito contigo</span>
                             </td>
                             {% endif %}
-                            <td class="px-6 py-4 text-center font-bold text-lg">
-                                {% if item.has_enrollment and item.total_score > 0 %}
-                                    <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">
-                                        {{ item.total_score }}
-                                    </span>
-                                {% else %}
-                                    <span class="text-gray-400">-</span>
-                                {% endif %}
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -77,4 +78,39 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+document.querySelectorAll('.semester-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const enrollmentId = this.getAttribute('data-enrollment-id');
+        const form = document.getElementById('form-' + enrollmentId);
+        
+        if (form) {
+            const sem1 = parseFloat(form.querySelector('input[name="semester_1"]').value) || 0;
+            const sem2 = parseFloat(form.querySelector('input[name="semester_2"]').value) || 0;
+            const sem3 = parseFloat(form.querySelector('input[name="semester_3"]').value) || 0;
+            
+            // Contar cuántos semestres tienen valores
+            const valuesCount = (sem1 > 0 ? 1 : 0) + (sem2 > 0 ? 1 : 0) + (sem3 > 0 ? 1 : 0);
+            
+            // Calcular promedio
+            let promedio = 0;
+            if (valuesCount > 0) {
+                promedio = (sem1 + sem2 + sem3) / valuesCount;
+            }
+            
+            // Mostrar promedio
+            const promediElement = document.getElementById('promedio-' + enrollmentId);
+            if (promediElement) {
+                if (promedio > 0) {
+                    const colorClass = promedio >= 60 ? 'text-green-600' : 'text-red-600';
+                    promediElement.innerHTML = `<span class="${colorClass}">${promedio.toFixed(2)}</span>`;
+                } else {
+                    promediElement.innerHTML = '<span class="text-gray-400">-</span>';
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
