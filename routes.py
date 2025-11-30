@@ -679,10 +679,20 @@ def teacher_grades():
         flash('Profesor no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
+    # Get all courses for this teacher
     courses = Course.query.filter_by(teacher_id=teacher.id).all()
-    enrollments = []
+    
+    # Get all grades from these courses and all students in those grades
+    grades_data = {}
     for course in courses:
-        enrollments.extend(course.enrollments)
+        grade = course.grade_rel
+        if grade.id not in grades_data:
+            students = Student.query.filter_by(grade_id=grade.id).all()
+            grades_data[grade.id] = {
+                'grade': grade,
+                'students': students,
+                'enrollments': Enrollment.query.join(Course).filter(Course.grade_id == grade.id).all()
+            }
     
     if request.method == 'POST':
         try:
@@ -706,7 +716,7 @@ def teacher_grades():
         
         return redirect(url_for('teacher_grades'))
     
-    return render_template('teacher_grades.html', courses=courses, enrollments=enrollments)
+    return render_template('teacher_grades.html', grades_data=grades_data)
 
 
 @app.route('/teacher/attendance', methods=['GET', 'POST'])
@@ -721,10 +731,20 @@ def teacher_attendance():
         flash('Profesor no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
+    # Get all courses for this teacher
     courses = Course.query.filter_by(teacher_id=teacher.id).all()
-    enrollments = []
+    
+    # Get all grades from these courses and all students in those grades
+    grades_data = {}
     for course in courses:
-        enrollments.extend(course.enrollments)
+        grade = course.grade_rel
+        if grade.id not in grades_data:
+            students = Student.query.filter_by(grade_id=grade.id).all()
+            grades_data[grade.id] = {
+                'grade': grade,
+                'students': students,
+                'enrollments': Enrollment.query.join(Course).filter(Course.grade_id == grade.id).all()
+            }
     
     if request.method == 'POST':
         try:
@@ -747,4 +767,4 @@ def teacher_attendance():
         
         return redirect(url_for('teacher_attendance'))
     
-    return render_template('teacher_attendance.html', courses=courses, enrollments=enrollments)
+    return render_template('teacher_attendance.html', grades_data=grades_data)
