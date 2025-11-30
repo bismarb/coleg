@@ -43,6 +43,8 @@ class Student(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     student_code = db.Column(db.String(50), unique=True, nullable=False)
     grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
+    apellido_paterno = db.Column(db.String(100), nullable=True)
+    apellido_materno = db.Column(db.String(100), nullable=True)
     enrollment_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

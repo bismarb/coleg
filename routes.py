@@ -93,6 +93,8 @@ def add_student():
         email = request.form.get('email')
         student_code = request.form.get('student_code')
         grade_id = request.form.get('grade_id')
+        apellido_paterno = request.form.get('apellido_paterno')
+        apellido_materno = request.form.get('apellido_materno')
         
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
@@ -103,7 +105,7 @@ def add_student():
         db.session.add(user)
         db.session.flush()
         
-        student = Student(user_id=user.id, student_code=student_code, grade_id=grade_id, enrollment_date=date.today())
+        student = Student(user_id=user.id, student_code=student_code, grade_id=grade_id, enrollment_date=date.today(), apellido_paterno=apellido_paterno, apellido_materno=apellido_materno)
         db.session.add(student)
         db.session.commit()
         
@@ -134,6 +136,8 @@ def edit_student(student_id):
             student.student_code = request.form.get('student_code')
             student.grade_id = request.form.get('grade_id')
             student.status = request.form.get('status')
+            student.apellido_paterno = request.form.get('apellido_paterno')
+            student.apellido_materno = request.form.get('apellido_materno')
             
             db.session.commit()
             flash('Estudiante actualizado', 'success')
