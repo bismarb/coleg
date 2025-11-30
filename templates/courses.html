@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Cursos - Academia{% endblock %}
+{% block title %}Cursos - Sistema de Gestión Académica{% endblock %}
 
 {% block content %}
 <div>
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Cursos</h1>
+        <h1 class="text-3xl font-bold text-white flex items-center gap-2">
+            <i class="fas fa-book text-yellow-400"></i> Cursos
+        </h1>
         {% if current_user.role in ['admin', 'teacher'] %}
-        <button onclick="openModal('newCourseModal')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <button onclick="openModal('newCourseModal')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded transition font-medium">
             <i class="fas fa-plus"></i> Nuevo Curso
         </button>
         {% endif %}
@@ -15,12 +17,12 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for course in courses %}
-        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-            <h3 class="text-xl font-bold text-blue-600 mb-2">{{ course.subject.name }}</h3>
-            <p class="text-sm text-gray-600 mb-2"><strong>Código:</strong> {{ course.course_code }}</p>
-            <p class="text-sm text-gray-600 mb-2"><strong>Profesor:</strong> {{ course.teacher.user.name }}</p>
-            <p class="text-sm text-gray-600 mb-4"><strong>Estudiantes:</strong> <span class="text-blue-600">10/{{ course.max_students }}</span></p>
-            <span class="px-2 py-1 rounded text-sm {% if course.status == 'active' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition border border-gray-700 hover:border-yellow-500">
+            <h3 class="text-xl font-bold text-yellow-400 mb-2">{{ course.subject.name }}</h3>
+            <p class="text-sm text-gray-400 mb-2"><strong>Código:</strong> {{ course.course_code }}</p>
+            <p class="text-sm text-gray-400 mb-2"><strong>Profesor:</strong> {{ course.teacher.user.name }}</p>
+            <p class="text-sm text-gray-400 mb-4"><strong>Estudiantes:</strong> <span class="text-yellow-400">10/{{ course.max_students }}</span></p>
+            <span class="px-2 py-1 rounded text-sm {% if course.status == 'active' %}bg-green-900 text-green-300{% else %}bg-gray-700 text-gray-300{% endif %}">
                 {{ course.status }}
             </span>
         </div>
@@ -29,21 +31,21 @@
 </div>
 
 {% if current_user.role in ['admin', 'teacher'] %}
-<div id="newCourseModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-8 max-w-md">
-        <h2 class="text-2xl font-bold mb-4">Nuevo Curso</h2>
+<div id="newCourseModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-8 max-w-md border border-gray-700">
+        <h2 class="text-2xl font-bold mb-4 text-white">Nuevo Curso</h2>
         <form method="POST" action="{{ url_for('create_course') }}" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium">Código de Curso</label>
-                <input type="text" name="course_code" required class="w-full px-4 py-2 border rounded">
+                <label class="block text-sm font-medium text-gray-300">Código de Curso</label>
+                <input type="text" name="course_code" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white">
             </div>
             <div>
-                <label class="block text-sm font-medium">Máximo de Estudiantes</label>
-                <input type="number" name="max_students" value="30" class="w-full px-4 py-2 border rounded">
+                <label class="block text-sm font-medium text-gray-300">Máximo de Estudiantes</label>
+                <input type="number" name="max_students" value="30" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Guardar</button>
-                <button type="button" onclick="closeModal('newCourseModal')" class="flex-1 bg-gray-300 py-2 rounded">Cancelar</button>
+                <button type="submit" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black py-2 rounded transition font-medium">Guardar</button>
+                <button type="button" onclick="closeModal('newCourseModal')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded transition">Cancelar</button>
             </div>
         </form>
     </div>
