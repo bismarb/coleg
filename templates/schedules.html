@@ -31,6 +31,8 @@
                 <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
                     <tr>
                         <th class="px-6 py-4 text-left">Curso</th>
+                        <th class="px-6 py-4 text-left">Materia</th>
+                        <th class="px-6 py-4 text-left">Profesor</th>
                         <th class="px-6 py-4 text-left">Día</th>
                         <th class="px-6 py-4 text-left">Hora Inicio</th>
                         <th class="px-6 py-4 text-left">Hora Fin</th>
@@ -44,6 +46,10 @@
                     {% for schedule in data.schedules %}
                     <tr class="hover:bg-sky-50">
                         <td class="px-6 py-4 font-semibold">{{ schedule.course.course_code }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">{{ schedule.course.subject.name }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-semibold">{{ schedule.course.teacher.user.name }}</td>
                         <td class="px-6 py-4 text-sm">
                             <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ schedule.day_of_week }}</span>
                         </td>
