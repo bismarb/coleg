@@ -562,6 +562,19 @@ def get_teacher_specialization(teacher_id):
         teacher = Teacher.query.get(teacher_id)
         if not teacher:
             return jsonify({'error': 'Profesor no encontrado'}), 404
-        return jsonify({'specialization': teacher.specialization or ''})
+        
+        # Get first subject from teacher's subjects
+        subject_id = None
+        if teacher.teacher_subjects and len(teacher.teacher_subjects) > 0:
+            subject_id = teacher.teacher_subjects[0].subject.id
+        else:
+            # Fallback to first subject in database
+            first_subject = Subject.query.first()
+            subject_id = first_subject.id if first_subject else None
+        
+        return jsonify({
+            'specialization': teacher.specialization or '',
+            'subject_id': subject_id
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
