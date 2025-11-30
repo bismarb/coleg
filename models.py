@@ -161,8 +161,6 @@ class Course(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     enrollments = db.relationship('Enrollment', backref='course')
-    schedules = db.relationship('Schedule', backref='course')
-    assignments = db.relationship('Assignment', backref='course')
 
     def to_dict(self):
         return {
@@ -240,47 +238,5 @@ class Attendance(db.Model):
             'date': self.date.isoformat(),
             'status': self.status,
             'notes': self.notes,
-            'createdAt': self.created_at.isoformat()
-        }
-
-class Schedule(db.Model):
-    __tablename__ = 'schedules'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
-    day_of_week = db.Column(db.String(20), nullable=False)
-    start_time = db.Column(db.String(10), nullable=False)
-    end_time = db.Column(db.String(10), nullable=False)
-    classroom = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'courseId': self.course_id,
-            'dayOfWeek': self.day_of_week,
-            'startTime': self.start_time,
-            'endTime': self.end_time,
-            'classroom': self.classroom,
-            'createdAt': self.created_at.isoformat()
-        }
-
-class Assignment(db.Model):
-    __tablename__ = 'assignments'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    due_date = db.Column(db.DateTime, nullable=False)
-    max_points = db.Column(db.Numeric(5, 2), default=100)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'courseId': self.course_id,
-            'title': self.title,
-            'description': self.description,
-            'dueDate': self.due_date.isoformat(),
-            'maxPoints': str(self.max_points),
             'createdAt': self.created_at.isoformat()
         }

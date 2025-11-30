@@ -1,4 +1,4 @@
-from models import db, User, Student, Teacher, Department, Subject, Course, Enrollment, Grade, Attendance, Schedule, Assignment, AcademicPeriod
+from models import db, User, Student, Teacher, Department, Subject, Course, Enrollment, Grade, Attendance, AcademicPeriod
 
 class Storage:
     """Storage layer for database operations"""
@@ -165,6 +165,19 @@ class Storage:
         if grade:
             db.session.delete(grade)
             db.session.commit()
+    
+    # Attendance
+    def get_attendance(self, attendance_id):
+        return Attendance.query.get(attendance_id)
+    
+    def get_attendance_by_enrollment(self, enrollment_id):
+        return Attendance.query.filter_by(enrollment_id=enrollment_id).all()
+    
+    def create_attendance(self, **kwargs):
+        attendance = Attendance(**kwargs)
+        db.session.add(attendance)
+        db.session.commit()
+        return attendance
     
     # Statistics
     def get_statistics(self):
