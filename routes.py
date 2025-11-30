@@ -885,6 +885,11 @@ def teacher_attendance():
             attendance_date = request.form.get('attendance_date')
             status = request.form.get('status')
             
+            # Validate that status is provided
+            if not status:
+                flash('Error: Por favor selecciona un estado de asistencia', 'error')
+                return redirect(url_for('teacher_attendance'))
+            
             # If no date provided, use today's date
             if not attendance_date:
                 attendance_date = date.today()
