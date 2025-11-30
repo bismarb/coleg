@@ -7,7 +7,7 @@ from flask_login import login_required, current_user, login_user, logout_user
 from models import db, User, Student, Teacher, Course, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
 from auth import verify_password, hash_password
 from app import app
-from datetime import date
+from datetime import date, datetime
 
 
 @app.route('/')
@@ -211,6 +211,7 @@ def add_teacher():
         specialization = request.form.get('specialization')
         apellido_paterno = request.form.get('apellido_paterno')
         apellido_materno = request.form.get('apellido_materno')
+        end_contract_date = request.form.get('end_contract_date')
         
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
@@ -221,7 +222,11 @@ def add_teacher():
         db.session.add(user)
         db.session.flush()
         
-        teacher = Teacher(user_id=user.id, teacher_code=teacher_code, specialization=specialization, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, hire_date=date.today())
+        end_date = None
+        if end_contract_date:
+            end_date = datetime.strptime(end_contract_date, '%Y-%m-%d').date()
+        
+        teacher = Teacher(user_id=user.id, teacher_code=teacher_code, specialization=specialization, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, hire_date=date.today(), end_contract_date=end_date)
         db.session.add(teacher)
         db.session.commit()
         
@@ -254,6 +259,12 @@ def edit_teacher(teacher_id):
             teacher.apellido_paterno = request.form.get('apellido_paterno')
             teacher.apellido_materno = request.form.get('apellido_materno')
             teacher.status = request.form.get('status')
+            
+            end_contract_date = request.form.get('end_contract_date')
+            if end_contract_date:
+                teacher.end_contract_date = datetime.strptime(end_contract_date, '%Y-%m-%d').date()
+            else:
+                teacher.end_contract_date = None
             
             db.session.commit()
             flash('Profesor actualizado', 'success')
