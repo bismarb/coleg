@@ -853,7 +853,7 @@ def teacher_attendance():
             # Calculate attendance statistics for each enrollment
             enrollments_with_stats = []
             for enr in enrollments:
-                attendance_records = Attendance.query.filter_by(enrollment_id=enr.id).all()
+                attendance_records = Attendance.query.filter_by(enrollment_id=enr.id).order_by(Attendance.attendance_date.desc()).all()
                 total_records = len(attendance_records)
                 present_count = len([a for a in attendance_records if a.status == 'present'])
                 absent_count = len([a for a in attendance_records if a.status == 'absent'])
@@ -861,7 +861,9 @@ def teacher_attendance():
                 excused_count = len([a for a in attendance_records if a.status == 'excused'])
                 
                 attendance_percentage = round((present_count / total_records * 100), 1) if total_records > 0 else 0
-                recent_attendance = sorted(attendance_records, key=lambda x: x.attendance_date, reverse=True)[:5]
+                # Get all attendance records sorted by date (most recent first)
+                all_attendance = sorted(attendance_records, key=lambda x: x.attendance_date, reverse=True)
+                recent_attendance = all_attendance[:10]  # Show last 10
                 
                 enrollments_with_stats.append({
                     'enrollment': enr,
@@ -871,7 +873,8 @@ def teacher_attendance():
                     'late_count': late_count,
                     'excused_count': excused_count,
                     'attendance_percentage': attendance_percentage,
-                    'recent_attendance': recent_attendance
+                    'recent_attendance': recent_attendance,
+                    'all_attendance': all_attendance  # Add all records for expanded view
                 })
             
             grades_data[grade.id] = {

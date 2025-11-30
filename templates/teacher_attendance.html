@@ -26,6 +26,7 @@
                             <th class="px-6 py-4 text-center">Llega Tarde</th>
                             <th class="px-6 py-4 text-center">Justificado</th>
                             <th class="px-6 py-4 text-left">Registrar Asistencia Hoy</th>
+                            <th class="px-6 py-4 text-center">Historial</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y search-body-{{ grade_id }}">
@@ -68,40 +69,56 @@
                                     </button>
                                 </form>
                             </td>
+                            <td class="px-6 py-4 text-center">
+                                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold toggle-history" data-enrollment-id="{{ item.enrollment.id }}">
+                                    <i class="fas fa-history"></i> Ver
+                                </button>
+                            </td>
+                        </tr>
+                        
+                        <!-- Fila expandible con historial completo de asistencias -->
+                        <tr id="history-{{ item.enrollment.id }}" class="hidden" style="display: none;">
+                            <td colspan="8" class="px-6 py-4 bg-gray-50">
+                                <div class="space-y-4">
+                                    <h4 class="font-semibold text-sm mb-3">📅 Historial Completo de Asistencias - {{ item.enrollment.student.user.name }}</h4>
+                                    {% if item.all_attendance %}
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                        {% for attendance in item.all_attendance %}
+                                        <div class="p-3 rounded border-l-4 
+                                            {% if attendance.status == 'present' %}bg-green-50 border-green-500
+                                            {% elif attendance.status == 'absent' %}bg-red-50 border-red-500
+                                            {% elif attendance.status == 'late' %}bg-yellow-50 border-yellow-500
+                                            {% elif attendance.status == 'excused' %}bg-blue-50 border-blue-500
+                                            {% endif %}">
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-semibold text-sm">{{ attendance.attendance_date }}</span>
+                                                <span class="
+                                                    {% if attendance.status == 'present' %}bg-green-500 text-white
+                                                    {% elif attendance.status == 'absent' %}bg-red-500 text-white
+                                                    {% elif attendance.status == 'late' %}bg-yellow-500 text-white
+                                                    {% elif attendance.status == 'excused' %}bg-blue-500 text-white
+                                                    {% endif %}
+                                                    px-2 py-1 rounded text-xs font-bold">
+                                                    {% if attendance.status == 'present' %}✓ Presente
+                                                    {% elif attendance.status == 'absent' %}✗ Ausente
+                                                    {% elif attendance.status == 'late' %}↻ Llega Tarde
+                                                    {% elif attendance.status == 'excused' %}📝 Justificado
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-gray-500 text-sm italic">No hay registros de asistencia aún</p>
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <!-- Historial reciente para cada estudiante -->
-            {% if data.enrollments %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                {% for item in data.enrollments %}
-                {% if item.recent_attendance %}
-                <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-                    <h4 class="font-semibold text-sm mb-2">{{ item.enrollment.student.user.name }} - Últimas asistencias</h4>
-                    <div class="flex gap-1">
-                        {% for attendance in item.recent_attendance %}
-                        <span class="
-                            {% if attendance.status == 'present' %}bg-green-500 text-white
-                            {% elif attendance.status == 'absent' %}bg-red-500 text-white
-                            {% elif attendance.status == 'late' %}bg-yellow-500 text-white
-                            {% elif attendance.status == 'excused' %}bg-blue-500 text-white
-                            {% endif %}
-                            px-2 py-1 rounded text-xs font-bold" title="{{ attendance.attendance_date }}">
-                            {% if attendance.status == 'present' %}P
-                            {% elif attendance.status == 'absent' %}A
-                            {% elif attendance.status == 'late' %}L
-                            {% elif attendance.status == 'excused' %}J{% endif %}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% endfor %}
-            </div>
-            {% endif %}
 
         </div>
         {% endfor %}
@@ -131,6 +148,26 @@ if (globalSearch) {
         });
     });
 }
+
+// Toggle historial expandible
+document.querySelectorAll('.toggle-history').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const enrollmentId = this.getAttribute('data-enrollment-id');
+        const historyRow = document.getElementById('history-' + enrollmentId);
+        
+        if (historyRow.style.display === 'none' || historyRow.classList.contains('hidden')) {
+            historyRow.style.display = 'table-row';
+            historyRow.classList.remove('hidden');
+            this.classList.add('bg-blue-700');
+            this.innerHTML = '<i class="fas fa-chevron-up"></i> Ocultar';
+        } else {
+            historyRow.style.display = 'none';
+            historyRow.classList.add('hidden');
+            this.classList.remove('bg-blue-700');
+            this.innerHTML = '<i class="fas fa-history"></i> Ver';
+        }
+    });
+});
 
 // Validar que se seleccione un estado
 function validateAttendance(form) {
