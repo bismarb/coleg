@@ -95,24 +95,10 @@
                 {% endif %}
             </ul>
         </aside>
-
         <main class="flex-1 p-8 fade-in">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="mb-6 p-4 rounded-lg flex items-center gap-3 {% if category == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% else %}bg-green-100 text-green-800 border-l-4 border-green-500{% endif %}">
-                            <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            {% block content %}{% endblock %}
-        </main>
-    </div>
     {% else %}
-    <div class="flex justify-center items-center min-h-screen">
-        <main class="w-full">
+    <main class="flex justify-center items-center min-h-screen">
+    {% endif %}
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -125,7 +111,6 @@
             {% endwith %}
             {% block content %}{% endblock %}
         </main>
-    </div>
-    {% endif %}
+    {% if current_user.is_authenticated %}</div>{% endif %}
 </body>
 </html>
