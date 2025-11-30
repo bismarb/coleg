@@ -570,7 +570,21 @@ def mark_attendance():
 def view_schedule():
     schedules = Schedule.query.all()
     courses = Course.query.all()
-    return render_template('schedules.html', schedules=schedules, courses=courses)
+    grades = Grade.query.order_by(Grade.level).all()
+    
+    # Organize schedules by grade
+    schedules_by_grade = {}
+    for grade in grades:
+        grade_schedules = []
+        for schedule in schedules:
+            if schedule.course.grade_id == grade.id:
+                grade_schedules.append(schedule)
+        schedules_by_grade[grade.id] = {
+            'grade': grade,
+            'schedules': grade_schedules
+        }
+    
+    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses)
 
 
 @app.route('/schedule/add', methods=['POST'])

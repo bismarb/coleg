@@ -3,57 +3,80 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-calendar-alt text-purple-600 mr-2"></i>Horarios</h1>
+        {% if current_user.role == 'admin' %}
         <button onclick="openModal('addScheduleModal')" class="gradient-btn text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2">
             <i class="fas fa-plus"></i> Agregar Horario
         </button>
+        {% endif %}
     </div>
     
+    {% if current_user.role == 'admin' %}
     <div class="bg-sky-50 rounded-2xl p-4 border-2 border-sky-200">
         <div class="relative">
             <i class="fas fa-search absolute left-4 top-4 text-sky-400 text-lg"></i>
             <input type="text" id="searchInput" placeholder="Buscar por curso, aula o día..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onkeyup="filterSchedules()">
         </div>
     </div>
+    {% endif %}
     
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
-                <tr>
-                    <th class="px-6 py-4 text-left">Curso</th>
-                    <th class="px-6 py-4 text-left">Día</th>
-                    <th class="px-6 py-4 text-left">Hora Inicio</th>
-                    <th class="px-6 py-4 text-left">Hora Fin</th>
-                    <th class="px-6 py-4 text-left">Aula</th>
-                    <th class="px-6 py-4 text-left">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y" id="scheduleTableBody">
-                {% for schedule in schedules %}
-                <tr class="hover:bg-sky-50 schedule-row" data-searchtext="{{ schedule.course.course_code.lower() }} {{ schedule.day_of_week.lower() }} {{ schedule.classroom.lower() if schedule.classroom else '' }}">
-                    <td class="px-6 py-4 font-semibold">{{ schedule.course.course_code }}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ schedule.day_of_week }}</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm">{{ schedule.start_time }}</td>
-                    <td class="px-6 py-4 text-sm">{{ schedule.end_time }}</td>
-                    <td class="px-6 py-4 text-sm">{{ schedule.classroom or '-' }}</td>
-                    <td class="px-6 py-4 flex gap-2">
-                        <a href="{{ url_for('edit_schedule', schedule_id=schedule.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold transition">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <form method="POST" action="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" style="display:inline;">
-                            <button type="submit" onclick="return confirm('¿Eliminar horario?')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-bold transition">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% for grade_id, data in schedules_by_grade.items() %}
+    <div class="space-y-4">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg">
+            <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
+        </div>
+        
+        {% if data.schedules %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left">Curso</th>
+                        <th class="px-6 py-4 text-left">Día</th>
+                        <th class="px-6 py-4 text-left">Hora Inicio</th>
+                        <th class="px-6 py-4 text-left">Hora Fin</th>
+                        <th class="px-6 py-4 text-left">Aula</th>
+                        {% if current_user.role == 'admin' %}
+                        <th class="px-6 py-4 text-left">Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for schedule in data.schedules %}
+                    <tr class="hover:bg-sky-50">
+                        <td class="px-6 py-4 font-semibold">{{ schedule.course.course_code }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ schedule.day_of_week }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm">{{ schedule.start_time }}</td>
+                        <td class="px-6 py-4 text-sm">{{ schedule.end_time }}</td>
+                        <td class="px-6 py-4 text-sm">{{ schedule.classroom or '-' }}</td>
+                        {% if current_user.role == 'admin' %}
+                        <td class="px-6 py-4 flex gap-2">
+                            <a href="{{ url_for('edit_schedule', schedule_id=schedule.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold transition">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <form method="POST" action="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" style="display:inline;">
+                                <button type="submit" onclick="return confirm('¿Eliminar horario?')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-bold transition">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
+            <p class="text-sm">No hay horarios registrados para este grado.</p>
+        </div>
+        {% endif %}
     </div>
+    {% endfor %}
 </div>
 
+{% if current_user.role == 'admin' %}
 <div id="addScheduleModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-8 max-w-md border-t-4 border-purple-500 shadow-2xl max-h-96 overflow-y-auto">
         <h2 class="text-2xl font-bold mb-6 text-gray-800">Agregar Horario</h2>
@@ -105,7 +128,7 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function filterSchedules() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('.schedule-row');
+    const rows = document.querySelectorAll('tr[data-searchtext]');
     let visibleCount = 0;
     
     rows.forEach(row => {
@@ -117,19 +140,7 @@ function filterSchedules() {
             row.style.display = 'none';
         }
     });
-    
-    if (visibleCount === 0 && searchInput !== '') {
-        const tbody = document.getElementById('scheduleTableBody');
-        if (!tbody.querySelector('.no-results')) {
-            const noResultsRow = document.createElement('tr');
-            noResultsRow.className = 'no-results';
-            noResultsRow.innerHTML = '<td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No se encontraron horarios</td>';
-            tbody.appendChild(noResultsRow);
-        }
-    } else {
-        const noResultsRow = document.querySelector('.no-results');
-        if (noResultsRow) noResultsRow.remove();
-    }
 }
 </script>
+{% endif %}
 {% endblock %}
