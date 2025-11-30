@@ -25,7 +25,7 @@
                     <tbody class="divide-y">
                         {% for item in data.students_with_scores %}
                         <tr class="hover:bg-sky-50 {% if not item.has_enrollment %}bg-gray-50{% endif %}">
-                            <td class="px-6 py-4 font-semibold">{{ item.student.user.name }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ item.student.apellido_paterno or '' }} {{ item.student.apellido_materno or '' }} {{ item.student.user.name }}</td>
                             <td class="px-6 py-4 text-sm">
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ item.student.grade.name }}</span>
                             </td>

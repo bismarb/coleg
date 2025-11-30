@@ -24,7 +24,7 @@
                     <tbody class="divide-y">
                         {% for enrollment in data.enrollments %}
                         <tr class="hover:bg-sky-50">
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.student.user.name }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ enrollment.student.apellido_paterno or '' }} {{ enrollment.student.apellido_materno or '' }} {{ enrollment.student.user.name }}</td>
                             <td class="px-6 py-4">
                                 <form method="POST" class="flex gap-2 items-center" style="display:flex; gap: 0.5rem;">
                                     <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
