@@ -285,15 +285,108 @@ def delete_teacher(teacher_id):
 def courses():
     if current_user.role == 'admin':
         courses = Course.query.all()
+        subjects = Subject.query.all()
+        teachers = Teacher.query.all()
+        grades = Grade.query.all()
     elif current_user.role == 'teacher':
         teacher = Teacher.query.filter_by(user_id=current_user.id).first()
         courses = Course.query.filter_by(teacher_id=teacher.id).all() if teacher else []
+        subjects = []
+        teachers = []
+        grades = []
     else:
         student = Student.query.filter_by(user_id=current_user.id).first()
         enrollments = Enrollment.query.filter_by(student_id=student.id).all() if student else []
         courses = [e.course for e in enrollments]
+        subjects = []
+        teachers = []
+        grades = []
     
-    return render_template('courses.html', courses=courses)
+    return render_template('courses.html', courses=courses, subjects=subjects, teachers=teachers, grades=grades)
+
+
+@app.route('/course/add', methods=['POST'])
+@login_required
+def add_course():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        course_code = request.form.get('course_code')
+        subject_id = request.form.get('subject_id')
+        teacher_id = request.form.get('teacher_id')
+        grade_id = request.form.get('grade_id')
+        max_students = request.form.get('max_students', 30)
+        
+        course = Course(course_code=course_code, subject_id=subject_id, teacher_id=teacher_id, grade_id=grade_id, max_students=max_students)
+        db.session.add(course)
+        db.session.commit()
+        
+        flash('Curso agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('courses'))
+
+
+@app.route('/course/<course_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_course(course_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('courses'))
+    
+    course = Course.query.get(course_id)
+    if not course:
+        flash('Curso no encontrado', 'error')
+        return redirect(url_for('courses'))
+    
+    if request.method == 'POST':
+        try:
+            course.course_code = request.form.get('course_code')
+            course.subject_id = request.form.get('subject_id')
+            course.teacher_id = request.form.get('teacher_id')
+            course.grade_id = request.form.get('grade_id')
+            course.max_students = request.form.get('max_students')
+            course.status = request.form.get('status')
+            
+            db.session.commit()
+            flash('Curso actualizado', 'success')
+            return redirect(url_for('courses'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    subjects = Subject.query.all()
+    teachers = Teacher.query.all()
+    grades = Grade.query.all()
+    return render_template('edit_course.html', course=course, subjects=subjects, teachers=teachers, grades=grades)
+
+
+@app.route('/course/<course_id>/delete', methods=['POST'])
+@login_required
+def delete_course(course_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        course = Course.query.get(course_id)
+        if not course:
+            flash('Curso no encontrado', 'error')
+            return redirect(url_for('courses'))
+        
+        Enrollment.query.filter_by(course_id=course_id).delete()
+        Schedule.query.filter_by(course_id=course_id).delete()
+        db.session.delete(course)
+        db.session.commit()
+        
+        flash('Curso eliminado', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('courses'))
 
 
 @app.route('/grades')
