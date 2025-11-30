@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-edit text-blue-600 mr-2"></i>Editar Estudiante</h1>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre</label>
+                <input type="text" name="name" value="{{ student.user.name }}" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                <input type="email" name="email" value="{{ student.user.email }}" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Código Estudiante</label>
+                <input type="text" name="student_code" value="{{ student.student_code }}" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Grado</label>
+                <select name="grade_id" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+                    {% for grade in grades %}
+                    <option value="{{ grade.id }}" {% if grade.id == student.grade_id %}selected{% endif %}>{{ grade.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                <select name="status" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+                    <option value="active" {% if student.status == 'active' %}selected{% endif %}>Activo</option>
+                    <option value="inactive" {% if student.status == 'inactive' %}selected{% endif %}>Inactivo</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-3 pt-6">
+                <button type="submit" class="flex-1 gradient-btn text-white py-3 rounded-lg transition font-bold">
+                    <i class="fas fa-save mr-2"></i>Guardar Cambios
+                </button>
+                <a href="{{ url_for('students') }}" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg transition font-bold text-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

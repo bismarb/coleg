@@ -78,7 +78,98 @@ def students():
         return redirect(url_for('dashboard'))
     
     students = Student.query.all()
-    return render_template('students.html', students=students)
+    grades = Grade.query.all()
+    return render_template('students.html', students=students, grades=grades)
+
+
+@app.route('/student/add', methods=['POST'])
+@login_required
+def add_student():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        student_code = request.form.get('student_code')
+        grade_id = request.form.get('grade_id')
+        
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            flash('El email ya está registrado', 'error')
+            return redirect(url_for('students'))
+        
+        user = User(email=email, name=name, password=hash_password('123456'), role='student')
+        db.session.add(user)
+        db.session.flush()
+        
+        student = Student(user_id=user.id, student_code=student_code, grade_id=grade_id, enrollment_date=date.today())
+        db.session.add(student)
+        db.session.commit()
+        
+        flash(f'Estudiante {name} agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('students'))
+
+
+@app.route('/student/<student_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_student(student_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    student = Student.query.get(student_id)
+    if not student:
+        flash('Estudiante no encontrado', 'error')
+        return redirect(url_for('students'))
+    
+    if request.method == 'POST':
+        try:
+            student.user.name = request.form.get('name')
+            student.user.email = request.form.get('email')
+            student.student_code = request.form.get('student_code')
+            student.grade_id = request.form.get('grade_id')
+            student.status = request.form.get('status')
+            
+            db.session.commit()
+            flash('Estudiante actualizado', 'success')
+            return redirect(url_for('students'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    grades = Grade.query.all()
+    return render_template('edit_student.html', student=student, grades=grades)
+
+
+@app.route('/student/<student_id>/delete', methods=['POST'])
+@login_required
+def delete_student(student_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        student = Student.query.get(student_id)
+        if not student:
+            flash('Estudiante no encontrado', 'error')
+            return redirect(url_for('students'))
+        
+        user = student.user
+        Enrollment.query.filter_by(student_id=student_id).delete()
+        db.session.delete(student)
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash('Estudiante eliminado', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('students'))
 
 
 @app.route('/teachers')
