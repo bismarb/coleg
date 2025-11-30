@@ -93,7 +93,13 @@
                 <li>
                     <a href="{{ url_for('admin_credentials') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-key text-lg"></i>
-                        <span>Credenciales</span>
+                        <span>Credenciales Estudiantes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin_teacher_credentials') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-key text-lg"></i>
+                        <span>Credenciales Profesores</span>
                     </a>
                 </li>
                 {% elif current_user.role == 'teacher' %}

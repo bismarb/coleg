@@ -1133,3 +1133,44 @@ def admin_credentials():
     # Get all students with their users
     students = Student.query.all()
     return render_template('admin_credentials.html', students=students)
+
+
+@app.route('/admin/teacher-credentials', methods=['GET', 'POST'])
+@login_required
+def admin_teacher_credentials():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            user_id = request.form.get('user_id')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            
+            user = User.query.get(user_id)
+            if not user:
+                flash('Usuario no encontrado', 'error')
+                return redirect(url_for('admin_teacher_credentials'))
+            
+            # Check if email already exists
+            existing = User.query.filter_by(email=email).first()
+            if existing and existing.id != user_id:
+                flash('El email ya está en uso', 'error')
+                return redirect(url_for('admin_teacher_credentials'))
+            
+            user.email = email
+            if password:
+                user.password = hash_password(password)
+            
+            db.session.commit()
+            flash(f'Credenciales de {user.name} actualizadas correctamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('admin_teacher_credentials'))
+    
+    # Get all teachers with their users
+    teachers = Teacher.query.all()
+    return render_template('admin_teacher_credentials.html', teachers=teachers)
