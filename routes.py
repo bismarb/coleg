@@ -187,6 +187,95 @@ def teachers():
     return render_template('teachers.html', teachers=teachers)
 
 
+@app.route('/teacher/add', methods=['POST'])
+@login_required
+def add_teacher():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        teacher_code = request.form.get('teacher_code')
+        specialization = request.form.get('specialization')
+        
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            flash('El email ya está registrado', 'error')
+            return redirect(url_for('teachers'))
+        
+        user = User(email=email, name=name, password=hash_password('123456'), role='teacher')
+        db.session.add(user)
+        db.session.flush()
+        
+        teacher = Teacher(user_id=user.id, teacher_code=teacher_code, specialization=specialization, hire_date=date.today())
+        db.session.add(teacher)
+        db.session.commit()
+        
+        flash(f'Profesor {name} agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('teachers'))
+
+
+@app.route('/teacher/<teacher_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_teacher(teacher_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    teacher = Teacher.query.get(teacher_id)
+    if not teacher:
+        flash('Profesor no encontrado', 'error')
+        return redirect(url_for('teachers'))
+    
+    if request.method == 'POST':
+        try:
+            teacher.user.name = request.form.get('name')
+            teacher.user.email = request.form.get('email')
+            teacher.teacher_code = request.form.get('teacher_code')
+            teacher.specialization = request.form.get('specialization')
+            teacher.status = request.form.get('status')
+            
+            db.session.commit()
+            flash('Profesor actualizado', 'success')
+            return redirect(url_for('teachers'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_teacher.html', teacher=teacher)
+
+
+@app.route('/teacher/<teacher_id>/delete', methods=['POST'])
+@login_required
+def delete_teacher(teacher_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        teacher = Teacher.query.get(teacher_id)
+        if not teacher:
+            flash('Profesor no encontrado', 'error')
+            return redirect(url_for('teachers'))
+        
+        user = teacher.user
+        Course.query.filter_by(teacher_id=teacher_id).delete()
+        db.session.delete(teacher)
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash('Profesor eliminado', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('teachers'))
+
+
 @app.route('/courses')
 @login_required
 def courses():
