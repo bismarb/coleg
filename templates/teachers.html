@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-chalkboard-user text-green-600 mr-2"></i>Profesores</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for teacher in teachers %}
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-green-500 card-hover">
+            <h3 class="text-lg font-bold text-gray-800">{{ teacher.user.name }}</h3>
+            <p class="text-sm text-gray-600 mt-1">{{ teacher.teacher_code }}</p>
+            <p class="text-xs text-gray-500 mt-2">{{ teacher.specialization or 'Sin especialización' }}</p>
+            <span class="inline-block mt-3 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">{{ teacher.status|upper }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

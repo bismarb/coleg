@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-star"></i> Calificaciones de {{ student.user.name }}</h1>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+                <tr><th class="px-6 py-4 text-left">Curso</th><th class="px-6 py-4 text-left">Tipo Evaluación</th><th class="px-6 py-4 text-left">Calificación</th><th class="px-6 py-4 text-left">Fecha</th></tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for assessment in assessments %}
+                <tr class="hover:bg-purple-50">
+                    <td class="px-6 py-4">{{ assessment.enrollment.course.subject.name }}</td>
+                    <td class="px-6 py-4">{{ assessment.assessment_type }}</td>
+                    <td class="px-6 py-4 font-bold text-purple-600">{{ assessment.score }}/100</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ assessment.assessment_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

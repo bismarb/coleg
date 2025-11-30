@@ -1,5 +1,5 @@
 """
-Models - Database Schema for Academic Management System
+Models - Database Schema for School Management System
 """
 
 from flask_sqlalchemy import SQLAlchemy
@@ -20,22 +20,20 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-class Department(db.Model):
-    __tablename__ = 'departments'
+class Grade(db.Model):
+    __tablename__ = 'grades'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    head = db.Column(db.String(255))
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    level = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-class AcademicPeriod(db.Model):
-    __tablename__ = 'academic_periods'
+class Subject(db.Model):
+    __tablename__ = 'subjects'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(255), nullable=False)
-    start_date = db.Column(db.Date, nullable=False)
-    end_date = db.Column(db.Date, nullable=False)
-    is_active = db.Column(db.Boolean, default=False)
+    code = db.Column(db.String(20), unique=True, nullable=False)
+    credits = db.Column(db.Integer, default=3)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -44,49 +42,24 @@ class Student(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     student_code = db.Column(db.String(50), unique=True, nullable=False)
-    grade = db.Column(db.String(20), nullable=False)
+    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
     enrollment_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', backref='student')
+    user = db.relationship('User', backref='student_profile')
+    grade = db.relationship('Grade', backref='students')
 
 
 class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
     teacher_code = db.Column(db.String(50), unique=True, nullable=False)
-    department_id = db.Column(db.String(36), db.ForeignKey('departments.id'))
     specialization = db.Column(db.Text)
     hire_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', backref='teacher')
-    department = db.relationship('Department', backref='teachers')
-
-
-class Parent(db.Model):
-    __tablename__ = 'parents'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
-    student_id = db.Column(db.String(36), db.ForeignKey('students.id'), nullable=False)
-    relationship = db.Column(db.String(50), default='parent')
-    phone = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', backref='parent_profile')
-    student = db.relationship('Student', backref='parents')
-
-
-class Subject(db.Model):
-    __tablename__ = 'subjects'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = db.Column(db.String(255), nullable=False)
-    code = db.Column(db.String(20), unique=True, nullable=False)
-    description = db.Column(db.Text)
-    credits = db.Column(db.Integer, default=3)
-    department_id = db.Column(db.String(36), db.ForeignKey('departments.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    department = db.relationship('Department', backref='subjects')
+    user = db.relationship('User', backref='teacher_profile')
 
 
 class Course(db.Model):
@@ -94,26 +67,14 @@ class Course(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
     teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
-    academic_period_id = db.Column(db.String(36), db.ForeignKey('academic_periods.id'), nullable=False)
+    grade_id = db.Column(db.String(36), db.ForeignKey('grades.id'), nullable=False)
     course_code = db.Column(db.String(50), unique=True, nullable=False)
     max_students = db.Column(db.Integer, default=30)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     subject = db.relationship('Subject', backref='courses')
     teacher = db.relationship('Teacher', backref='courses')
-    academic_period = db.relationship('AcademicPeriod', backref='courses')
-
-
-class Schedule(db.Model):
-    __tablename__ = 'schedules'
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
-    day_of_week = db.Column(db.String(20), nullable=False)
-    start_time = db.Column(db.String(10), nullable=False)
-    end_time = db.Column(db.String(10), nullable=False)
-    classroom = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    course = db.relationship('Course', backref='schedule')
+    grade_rel = db.relationship('Grade', backref='courses')
 
 
 class Enrollment(db.Model):
@@ -129,23 +90,35 @@ class Enrollment(db.Model):
     course = db.relationship('Course', backref='enrollments')
 
 
-class Grade(db.Model):
-    __tablename__ = 'grades'
+class Assessment(db.Model):
+    __tablename__ = 'assessments'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     enrollment_id = db.Column(db.String(36), db.ForeignKey('enrollments.id'), nullable=False)
     assessment_type = db.Column(db.String(50), nullable=False)
-    grade = db.Column(db.Numeric(5, 2), nullable=False)
+    score = db.Column(db.Numeric(5, 2), nullable=False)
     assessment_date = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    enrollment = db.relationship('Enrollment', backref='grades')
+    enrollment = db.relationship('Enrollment', backref='assessments')
 
 
 class Attendance(db.Model):
     __tablename__ = 'attendance'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     enrollment_id = db.Column(db.String(36), db.ForeignKey('enrollments.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    attendance_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    enrollment = db.relationship('Enrollment', backref='attendance')
+    enrollment = db.relationship('Enrollment', backref='attendance_records')
+
+
+class Schedule(db.Model):
+    __tablename__ = 'schedules'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
+    day_of_week = db.Column(db.String(20), nullable=False)
+    start_time = db.Column(db.String(10), nullable=False)
+    end_time = db.Column(db.String(10), nullable=False)
+    classroom = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    course = db.relationship('Course', backref='schedule')

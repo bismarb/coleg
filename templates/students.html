@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-users text-blue-600 mr-2"></i>Estudiantes</h1>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gradient-to-r from-sky-600 to-sky-700 text-white">
+                <tr><th class="px-6 py-4 text-left">Nombre</th><th class="px-6 py-4 text-left">Código</th><th class="px-6 py-4 text-left">Grado</th><th class="px-6 py-4 text-left">Estado</th></tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for student in students %}
+                <tr class="hover:bg-sky-50">
+                    <td class="px-6 py-4 font-semibold">{{ student.user.name }}</td>
+                    <td class="px-6 py-4">{{ student.student_code }}</td>
+                    <td class="px-6 py-4">{{ student.grade.name }}</td>
+                    <td class="px-6 py-4"><span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">{{ student.status|upper }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

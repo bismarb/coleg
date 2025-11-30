@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-calendar-alt text-red-600 mr-2"></i>Horarios</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for schedule in schedules %}
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-red-500 card-hover">
+            <h3 class="text-lg font-bold text-gray-800">{{ schedule.course.subject.name }}</h3>
+            <div class="space-y-2 mt-3 text-sm text-gray-600">
+                <p><i class="fas fa-calendar"></i> {{ schedule.day_of_week|upper }}</p>
+                <p><i class="fas fa-clock"></i> {{ schedule.start_time }} - {{ schedule.end_time }}</p>
+                <p><i class="fas fa-door-open"></i> Aula: {{ schedule.classroom or 'N/A' }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
