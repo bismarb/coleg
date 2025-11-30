@@ -53,20 +53,18 @@
                                 <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{{ item.excused_count }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <form method="POST" class="flex gap-1 attendance-form" style="display:flex; gap: 0.25rem;">
+                                <form method="POST" class="flex gap-1 items-center" onsubmit="return validateAttendance(this)">
                                     <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                     <input type="hidden" name="attendance_date" value="{{ today }}">
-                                    <button type="submit" name="status" value="present" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-bold" title="Presente">
-                                        <i class="fas fa-check"></i> P
-                                    </button>
-                                    <button type="submit" name="status" value="absent" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold" title="Ausente">
-                                        <i class="fas fa-times"></i> A
-                                    </button>
-                                    <button type="submit" name="status" value="late" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold" title="Llega Tarde">
-                                        <i class="fas fa-hourglass-end"></i> L
-                                    </button>
-                                    <button type="submit" name="status" value="excused" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" title="Justificado">
-                                        <i class="fas fa-file-alt"></i> J
+                                    <select name="status" class="px-2 py-1 border-2 border-green-300 rounded text-xs font-semibold bg-sky-50 focus:outline-none focus:border-green-500">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="present">✓ Presente</option>
+                                        <option value="absent">✗ Ausente</option>
+                                        <option value="late">↻ Llega Tarde</option>
+                                        <option value="excused">📝 Justificado</option>
+                                    </select>
+                                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold">
+                                        <i class="fas fa-save"></i> Guardar
                                     </button>
                                 </form>
                             </td>
@@ -134,23 +132,14 @@ if (globalSearch) {
     });
 }
 
-// Confirmación de asistencia rápida
-document.querySelectorAll('.attendance-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const statusButton = e.submitter;
-        const statusMap = {
-            'present': 'Presente',
-            'absent': 'Ausente',
-            'late': 'Llega Tarde',
-            'excused': 'Justificado'
-        };
-        const status = statusButton.value;
-        
-        if (confirm(`¿Marcar como ${statusMap[status]}?`)) {
-            this.submit();
-        }
-    });
-});
+// Validar que se seleccione un estado
+function validateAttendance(form) {
+    const status = form.querySelector('select[name="status"]').value;
+    if (!status) {
+        alert('Por favor selecciona un estado de asistencia');
+        return false;
+    }
+    return true;
+}
 </script>
 {% endblock %}
