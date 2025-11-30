@@ -33,30 +33,19 @@ def init_db():
     with app.app_context():
         db.create_all()
         
-        # Check if admin exists
-        if User.query.filter_by(email='admin@example.com').first():
-            return
-        
-        # Create grades
+        # Create grades if they don't exist
         from models import Grade
-        grades_data = [
-            Grade(name='1° Primaria', level=1),
-            Grade(name='2° Primaria', level=2),
-            Grade(name='3° Primaria', level=3),
-            Grade(name='4° Primaria', level=4),
-            Grade(name='5° Primaria', level=5),
-            Grade(name='6° Primaria', level=6),
-        ]
-        db.session.add_all(grades_data)
-        db.session.flush()
-        
-        # Create sample users
-        admin = User(email='admin@example.com', password=hash_password('123456'), name='Admin', role='admin')
-        teacher = User(email='teacher@example.com', password=hash_password('123456'), name='Professor', role='teacher')
-        student = User(email='student@example.com', password=hash_password('123456'), name='Student', role='student')
-        
-        db.session.add_all([admin, teacher, student])
-        db.session.commit()
+        if Grade.query.count() == 0:
+            grades_data = [
+                Grade(name='1° Primaria', level=1),
+                Grade(name='2° Primaria', level=2),
+                Grade(name='3° Primaria', level=3),
+                Grade(name='4° Primaria', level=4),
+                Grade(name='5° Primaria', level=5),
+                Grade(name='6° Primaria', level=6),
+            ]
+            db.session.add_all(grades_data)
+            db.session.commit()
 
 
 # Import routes AFTER app definition
