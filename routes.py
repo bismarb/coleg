@@ -1092,3 +1092,44 @@ def student_my_grades():
     general_average = round(total_promedio / total_calificaciones, 2) if total_calificaciones > 0 else 0
     
     return render_template('student_my_grades.html', grades_data=grades_data, student=student, general_average=general_average)
+
+
+@app.route('/admin/credentials')
+@login_required
+def admin_credentials():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            user_id = request.form.get('user_id')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            
+            user = User.query.get(user_id)
+            if not user:
+                flash('Usuario no encontrado', 'error')
+                return redirect(url_for('admin_credentials'))
+            
+            # Check if email already exists
+            existing = User.query.filter_by(email=email).first()
+            if existing and existing.id != user_id:
+                flash('El email ya está en uso', 'error')
+                return redirect(url_for('admin_credentials'))
+            
+            user.email = email
+            if password:
+                user.password = hash_password(password)
+            
+            db.session.commit()
+            flash(f'Credenciales de {user.name} actualizadas correctamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('admin_credentials'))
+    
+    # Get all students with their users
+    students = Student.query.all()
+    return render_template('admin_credentials.html', students=students)
