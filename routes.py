@@ -772,6 +772,49 @@ def teacher_grades():
                     flash('Estudiante removido exitosamente', 'success')
                 else:
                     flash('Inscripción no encontrada', 'error')
+            
+            elif action == 'create_student_with_grades':
+                name = request.form.get('name')
+                apellido_paterno = request.form.get('apellido_paterno')
+                apellido_materno = request.form.get('apellido_materno')
+                grade_id = request.form.get('grade_id')
+                subject_id = request.form.get('subject_id')
+                semester_1 = request.form.get('semester_1')
+                semester_2 = request.form.get('semester_2')
+                semester_3 = request.form.get('semester_3')
+                
+                # Create new user
+                email = request.form.get('email', f'{name.lower().replace(" ", ".")}.{apellido_paterno.lower()}@student.com')
+                existing_email = User.query.filter_by(email=email).first()
+                if existing_email:
+                    flash('El email ya existe', 'error')
+                else:
+                    user = User(email=email, name=name, password=hash_password('123456'), role='student')
+                    db.session.add(user)
+                    db.session.flush()
+                    
+                    # Create student
+                    student_code = f'STU-{name.upper()[:3]}-{date.today().strftime("%Y%m%d")}'
+                    student = Student(user_id=user.id, student_code=student_code, grade_id=grade_id, 
+                                    enrollment_date=date.today(), apellido_paterno=apellido_paterno, 
+                                    apellido_materno=apellido_materno)
+                    db.session.add(student)
+                    db.session.flush()
+                    
+                    # Create enrollment with grades
+                    enrollment = Enrollment(
+                        student_id=student.id,
+                        teacher_id=teacher.id,
+                        subject_id=subject_id,
+                        grade_id=grade_id,
+                        status='enrolled',
+                        semester_1=float(semester_1) if semester_1 else None,
+                        semester_2=float(semester_2) if semester_2 else None,
+                        semester_3=float(semester_3) if semester_3 else None
+                    )
+                    db.session.add(enrollment)
+                    db.session.commit()
+                    flash(f'Estudiante {name} creado y calificaciones guardadas exitosamente', 'success')
         except Exception as e:
             db.session.rollback()
             flash(f'Error: {str(e)}', 'error')

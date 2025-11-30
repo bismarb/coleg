@@ -13,19 +13,24 @@
         <div class="space-y-4">
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg flex justify-between items-center">
                 <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
-                <button type="button" class="add-student-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold" data-grade-id="{{ grade_id }}">
-                    <i class="fas fa-plus"></i> Agregar Estudiante
-                </button>
+                <div class="flex gap-2">
+                    <button type="button" class="add-student-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold" data-grade-id="{{ grade_id }}">
+                        <i class="fas fa-plus"></i> Agregar Estudiante
+                    </button>
+                    <button type="button" class="add-new-student-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold" data-grade-id="{{ grade_id }}">
+                        <i class="fas fa-user-plus"></i> Crear Estudiante
+                    </button>
+                </div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden modal-add-student-{{ grade_id }} hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-                <div class="bg-white rounded-lg p-6 w-96 shadow-2xl">
+                <div class="bg-white rounded-lg p-6 w-96 shadow-2xl max-h-96 overflow-y-auto">
                     <h3 class="text-xl font-bold mb-4">Agregar Estudiante a {{ data.grade.name }}</h3>
                     <form method="POST">
                         <input type="hidden" name="action" value="add_student">
                         <input type="hidden" name="grade_id" value="{{ grade_id }}">
-                        <div class="mb-4">
-                            <label class="block text-sm font-semibold mb-2">Estudiante</label>
+                        <div class="mb-3">
+                            <label class="block text-sm font-semibold mb-1">Estudiante</label>
                             <select name="student_id" class="w-full px-3 py-2 border-2 border-blue-300 rounded text-sm" required>
                                 <option value="">Selecciona un estudiante...</option>
                                 {% for grade in all_grades %}
@@ -39,8 +44,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-semibold mb-2">Materia</label>
+                        <div class="mb-3">
+                            <label class="block text-sm font-semibold mb-1">Materia</label>
                             <select name="subject_id" class="w-full px-3 py-2 border-2 border-blue-300 rounded text-sm" required>
                                 <option value="">Selecciona una materia...</option>
                                 {% for subject in all_subjects %}
@@ -49,10 +54,62 @@
                             </select>
                         </div>
                         <div class="flex gap-2">
-                            <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">
+                            <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold text-sm">
                                 <i class="fas fa-check"></i> Agregar
                             </button>
-                            <button type="button" class="flex-1 close-modal-{{ grade_id }} bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold">
+                            <button type="button" class="flex-1 close-modal-{{ grade_id }} bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold text-sm">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Modal para crear nuevo estudiante con calificaciones -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden modal-create-student-{{ grade_id }} hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                <div class="bg-white rounded-lg p-6 w-96 shadow-2xl max-h-96 overflow-y-auto">
+                    <h3 class="text-xl font-bold mb-4">Crear Estudiante con Calificaciones</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="create_student_with_grades">
+                        <input type="hidden" name="grade_id" value="{{ grade_id }}">
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">Nombre</label>
+                            <input type="text" name="name" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">Apellido Paterno</label>
+                            <input type="text" name="apellido_paterno" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">Apellido Materno</label>
+                            <input type="text" name="apellido_materno" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">Materia</label>
+                            <select name="subject_id" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs" required>
+                                <option value="">Selecciona...</option>
+                                {% for subject in all_subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">1er Semestre</label>
+                            <input type="number" name="semester_1" min="0" max="100" step="0.5" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs">
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold mb-1">2do Semestre</label>
+                            <input type="number" name="semester_2" min="0" max="100" step="0.5" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-xs font-semibold mb-1">3er Semestre</label>
+                            <input type="number" name="semester_3" min="0" max="100" step="0.5" class="w-full px-2 py-1 border-2 border-blue-300 rounded text-xs">
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded font-bold text-sm">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <button type="button" class="flex-1 close-create-modal-{{ grade_id }} bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded font-bold text-sm">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
                         </div>
@@ -184,7 +241,7 @@ document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
     });
 });
 
-// Modal de agregar estudiante
+// Modal de agregar estudiante existente
 document.querySelectorAll('.add-student-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const gradeId = this.getAttribute('data-grade-id');
@@ -198,6 +255,24 @@ document.querySelectorAll('[class*="close-modal-"]').forEach(btn => {
         const classList = this.className.match(/close-modal-[\w-]+/)[0];
         const gradeId = classList.replace('close-modal-', '');
         const modal = document.querySelector('.modal-add-student-' + gradeId);
+        modal.style.display = 'none';
+    });
+});
+
+// Modal de crear nuevo estudiante
+document.querySelectorAll('.add-new-student-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const gradeId = this.getAttribute('data-grade-id');
+        const modal = document.querySelector('.modal-create-student-' + gradeId);
+        modal.style.display = 'flex';
+    });
+});
+
+document.querySelectorAll('[class*="close-create-modal-"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const classList = this.className.match(/close-create-modal-[\w-]+/)[0];
+        const gradeId = classList.replace('close-create-modal-', '');
+        const modal = document.querySelector('.modal-create-student-' + gradeId);
         modal.style.display = 'none';
     });
 });
