@@ -731,10 +731,70 @@ def teacher_grades():
                 if enrollment:
                     if semester_1:
                         enrollment.semester_1 = float(semester_1)
+                        # Also save to Calificacion table for students to see
+                        existing_cal = Calificacion.query.filter_by(
+                            enrollment_id=enrollment_id,
+                            student_id=enrollment.student_id,
+                            subject_id=enrollment.subject_id,
+                            teacher_id=teacher.id,
+                            semester=1
+                        ).first()
+                        if existing_cal:
+                            existing_cal.calificacion = float(semester_1)
+                        else:
+                            cal = Calificacion(
+                                enrollment_id=enrollment_id,
+                                student_id=enrollment.student_id,
+                                subject_id=enrollment.subject_id,
+                                teacher_id=teacher.id,
+                                semester=1,
+                                calificacion=float(semester_1)
+                            )
+                            db.session.add(cal)
+                    
                     if semester_2:
                         enrollment.semester_2 = float(semester_2)
+                        existing_cal = Calificacion.query.filter_by(
+                            enrollment_id=enrollment_id,
+                            student_id=enrollment.student_id,
+                            subject_id=enrollment.subject_id,
+                            teacher_id=teacher.id,
+                            semester=2
+                        ).first()
+                        if existing_cal:
+                            existing_cal.calificacion = float(semester_2)
+                        else:
+                            cal = Calificacion(
+                                enrollment_id=enrollment_id,
+                                student_id=enrollment.student_id,
+                                subject_id=enrollment.subject_id,
+                                teacher_id=teacher.id,
+                                semester=2,
+                                calificacion=float(semester_2)
+                            )
+                            db.session.add(cal)
+                    
                     if semester_3:
                         enrollment.semester_3 = float(semester_3)
+                        existing_cal = Calificacion.query.filter_by(
+                            enrollment_id=enrollment_id,
+                            student_id=enrollment.student_id,
+                            subject_id=enrollment.subject_id,
+                            teacher_id=teacher.id,
+                            semester=3
+                        ).first()
+                        if existing_cal:
+                            existing_cal.calificacion = float(semester_3)
+                        else:
+                            cal = Calificacion(
+                                enrollment_id=enrollment_id,
+                                student_id=enrollment.student_id,
+                                subject_id=enrollment.subject_id,
+                                teacher_id=teacher.id,
+                                semester=3,
+                                calificacion=float(semester_3)
+                            )
+                            db.session.add(cal)
                     
                     db.session.commit()
                     flash('Calificaciones registradas exitosamente', 'success')
@@ -816,6 +876,42 @@ def teacher_grades():
                         semester_3=float(semester_3) if semester_3 else None
                     )
                     db.session.add(enrollment)
+                    db.session.flush()
+                    
+                    # Also create calificaciones for each semester
+                    if semester_1:
+                        cal = Calificacion(
+                            enrollment_id=enrollment.id,
+                            student_id=student.id,
+                            subject_id=subject_id,
+                            teacher_id=teacher.id,
+                            semester=1,
+                            calificacion=float(semester_1)
+                        )
+                        db.session.add(cal)
+                    
+                    if semester_2:
+                        cal = Calificacion(
+                            enrollment_id=enrollment.id,
+                            student_id=student.id,
+                            subject_id=subject_id,
+                            teacher_id=teacher.id,
+                            semester=2,
+                            calificacion=float(semester_2)
+                        )
+                        db.session.add(cal)
+                    
+                    if semester_3:
+                        cal = Calificacion(
+                            enrollment_id=enrollment.id,
+                            student_id=student.id,
+                            subject_id=subject_id,
+                            teacher_id=teacher.id,
+                            semester=3,
+                            calificacion=float(semester_3)
+                        )
+                        db.session.add(cal)
+                    
                     db.session.commit()
                     flash(f'Estudiante {name} creado y calificaciones guardadas exitosamente', 'success')
         except Exception as e:
