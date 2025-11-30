@@ -11,11 +11,8 @@
     {% if grades_data %}
         {% for grade_id, data in grades_data.items() %}
         <div class="space-y-4">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg flex justify-between items-center">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
                 <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
-                <div class="w-64">
-                    <input type="text" placeholder="🔍 Buscar estudiante..." class="search-input w-full px-4 py-2 rounded bg-white text-gray-800 text-sm" data-grade-id="{{ grade_id }}">
-                </div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -99,25 +96,6 @@ globalSearch.addEventListener('keyup', function() {
         } else {
             row.style.display = 'none';
         }
-    });
-});
-
-// Búsqueda por grado
-document.querySelectorAll('.search-input').forEach(input => {
-    input.addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        const gradeId = this.getAttribute('data-grade-id');
-        const tbody = document.querySelector('.search-body-' + gradeId);
-        const rows = tbody.querySelectorAll('.student-row');
-        
-        rows.forEach(row => {
-            const studentName = row.getAttribute('data-student-name').toLowerCase();
-            if (studentName.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
     });
 });
 
