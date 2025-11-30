@@ -665,3 +665,86 @@ def get_teacher_specialization(teacher_id):
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+
+@app.route('/teacher/grades', methods=['GET', 'POST'])
+@login_required
+def teacher_grades():
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    teacher = Teacher.query.filter_by(user_id=current_user.id).first()
+    if not teacher:
+        flash('Profesor no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    courses = Course.query.filter_by(teacher_id=teacher.id).all()
+    enrollments = []
+    for course in courses:
+        enrollments.extend(course.enrollments)
+    
+    if request.method == 'POST':
+        try:
+            enrollment_id = request.form.get('enrollment_id')
+            assessment_type = request.form.get('assessment_type')
+            score = request.form.get('score')
+            assessment_date = request.form.get('assessment_date')
+            
+            assessment = Assessment(
+                enrollment_id=enrollment_id,
+                assessment_type=assessment_type,
+                score=float(score),
+                assessment_date=assessment_date
+            )
+            db.session.add(assessment)
+            db.session.commit()
+            flash('Calificación registrada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('teacher_grades'))
+    
+    return render_template('teacher_grades.html', courses=courses, enrollments=enrollments)
+
+
+@app.route('/teacher/attendance', methods=['GET', 'POST'])
+@login_required
+def teacher_attendance():
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    teacher = Teacher.query.filter_by(user_id=current_user.id).first()
+    if not teacher:
+        flash('Profesor no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    courses = Course.query.filter_by(teacher_id=teacher.id).all()
+    enrollments = []
+    for course in courses:
+        enrollments.extend(course.enrollments)
+    
+    if request.method == 'POST':
+        try:
+            enrollment_id = request.form.get('enrollment_id')
+            attendance_date = request.form.get('attendance_date')
+            status = request.form.get('status')
+            
+            existing = Attendance.query.filter_by(enrollment_id=enrollment_id, attendance_date=attendance_date).first()
+            if existing:
+                existing.status = status
+            else:
+                attendance = Attendance(enrollment_id=enrollment_id, attendance_date=attendance_date, status=status)
+                db.session.add(attendance)
+            
+            db.session.commit()
+            flash('Asistencia registrada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('teacher_attendance'))
+    
+    return render_template('teacher_attendance.html', courses=courses, enrollments=enrollments)
