@@ -420,9 +420,8 @@ def add_grade():
     try:
         name = request.form.get('name')
         level = request.form.get('level')
-        max_students = request.form.get('max_students', 40)
         
-        grade = Grade(name=name, level=level, max_students=max_students)
+        grade = Grade(name=name, level=level)
         db.session.add(grade)
         db.session.commit()
         
@@ -450,7 +449,6 @@ def edit_grade(grade_id):
         try:
             grade.name = request.form.get('name')
             grade.level = request.form.get('level')
-            grade.max_students = request.form.get('max_students')
             
             db.session.commit()
             flash('Grado actualizado', 'success')
