@@ -8,8 +8,11 @@
     {% if grades_data %}
         {% for grade_id, data in grades_data.items() %}
         <div class="space-y-4">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg flex justify-between items-center">
                 <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
+                <div class="w-64">
+                    <input type="text" placeholder="🔍 Buscar estudiante..." class="search-input w-full px-4 py-2 rounded bg-white text-gray-800 text-sm" data-grade-id="{{ grade_id }}">
+                </div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -25,9 +28,9 @@
                             <th class="px-6 py-4 text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y">
+                    <tbody class="divide-y search-body-{{ grade_id }}">
                         {% for item in data.students_with_scores %}
-                        <tr class="hover:bg-sky-50 {% if not item.has_enrollment %}bg-gray-50{% endif %}">
+                        <tr class="hover:bg-sky-50 {% if not item.has_enrollment %}bg-gray-50{% endif %} student-row" data-student-name="{{ item.student.apellido_paterno or '' }} {{ item.student.apellido_materno or '' }} {{ item.student.user.name }}">
                             <td class="px-6 py-4 font-semibold">{{ item.student.apellido_paterno or '' }} {{ item.student.apellido_materno or '' }} {{ item.student.user.name }}</td>
                             <td class="px-6 py-4 text-sm">
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ item.student.grade.name }}</span>
@@ -80,6 +83,25 @@
 </div>
 
 <script>
+// Búsqueda
+document.querySelectorAll('.search-input').forEach(input => {
+    input.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const gradeId = this.getAttribute('data-grade-id');
+        const tbody = document.querySelector('.search-body-' + gradeId);
+        const rows = tbody.querySelectorAll('.student-row');
+        
+        rows.forEach(row => {
+            const studentName = row.getAttribute('data-student-name').toLowerCase();
+            if (studentName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+
 // Toggle edit mode
 document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
