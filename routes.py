@@ -554,13 +554,14 @@ def delete_schedule(schedule_id):
     return redirect(url_for('view_schedule'))
 
 
-@app.route('/api/teacher/<teacher_id>/subjects', methods=['GET'])
+@app.route('/api/teacher/<teacher_id>/specialization', methods=['GET'])
 @login_required
-def get_teacher_subjects(teacher_id):
-    """API endpoint para obtener materias de un profesor"""
+def get_teacher_specialization(teacher_id):
+    """API endpoint para obtener especialización de un profesor"""
     try:
-        teacher_subjects = TeacherSubject.query.filter_by(teacher_id=teacher_id).all()
-        subjects = [{'id': ts.subject.id, 'name': ts.subject.name} for ts in teacher_subjects]
-        return jsonify(subjects)
+        teacher = Teacher.query.get(teacher_id)
+        if not teacher:
+            return jsonify({'error': 'Profesor no encontrado'}), 404
+        return jsonify({'specialization': teacher.specialization or ''})
     except Exception as e:
         return jsonify({'error': str(e)}), 400
