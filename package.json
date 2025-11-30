@@ -1,0 +1,12 @@
+{
+  "name": "academia-sistema-gestion",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Académica - Python Flask",
+  "scripts": {
+    "dev": "python run.py",
+    "start": "python run.py",
+    "build": "python -m py_compile *.py"
+  },
+  "keywords": ["python", "flask"],
+  "license": "MIT"
+}
