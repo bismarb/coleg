@@ -619,16 +619,15 @@ def add_schedule():
     
     try:
         day_of_week = request.form.get('day_of_week')
-        subject_id = request.form.get('subject_id')
         teacher_id = request.form.get('teacher_id')
         start_time = request.form.get('start_time')
         end_time = request.form.get('end_time')
         classroom = request.form.get('classroom')
         
-        # Find the course matching subject_id and teacher_id
-        course = Course.query.filter_by(subject_id=subject_id, teacher_id=teacher_id).first()
+        # Find any course for this teacher
+        course = Course.query.filter_by(teacher_id=teacher_id).first()
         if not course:
-            flash('No se encontró un curso con esa materia y profesor', 'error')
+            flash('No se encontró un curso para este profesor', 'error')
             return redirect(url_for('view_schedule'))
         
         schedule = Schedule(course_id=course.id, day_of_week=day_of_week, start_time=start_time, end_time=end_time, classroom=classroom)
