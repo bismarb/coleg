@@ -4,7 +4,7 @@ Routes - Flask Views for School Management System
 
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
-from models import db, User, Student, Teacher, Course, Grade, Subject, Enrollment, Assessment, Attendance, Schedule
+from models import db, User, Student, Teacher, Course, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
 from auth import verify_password, hash_password
 from app import app
 from datetime import date
@@ -552,3 +552,15 @@ def delete_schedule(schedule_id):
         flash(f'Error: {str(e)}', 'error')
     
     return redirect(url_for('view_schedule'))
+
+
+@app.route('/api/teacher/<teacher_id>/subjects', methods=['GET'])
+@login_required
+def get_teacher_subjects(teacher_id):
+    """API endpoint para obtener materias de un profesor"""
+    try:
+        teacher_subjects = TeacherSubject.query.filter_by(teacher_id=teacher_id).all()
+        subjects = [{'id': ts.subject.id, 'name': ts.subject.name} for ts in teacher_subjects]
+        return jsonify(subjects)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400

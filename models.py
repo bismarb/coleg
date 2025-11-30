@@ -116,6 +116,16 @@ class Attendance(db.Model):
     enrollment = db.relationship('Enrollment', backref='attendance_records')
 
 
+class TeacherSubject(db.Model):
+    __tablename__ = 'teacher_subjects'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
+    subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    teacher = db.relationship('Teacher', backref='teacher_subjects')
+    subject = db.relationship('Subject', backref='teacher_subjects')
+
+
 class Schedule(db.Model):
     __tablename__ = 'schedules'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
