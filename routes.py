@@ -579,6 +579,16 @@ def view_schedule():
         (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
     ).all()
     
+    # Create a map of teacher_id -> list of subject_ids they teach
+    teacher_subject_map = {}
+    for teacher in teachers:
+        teacher_subject_map[teacher.id] = []
+        # Get all courses taught by this teacher
+        teacher_courses = Course.query.filter_by(teacher_id=teacher.id).all()
+        for course in teacher_courses:
+            if course.subject_id not in teacher_subject_map[teacher.id]:
+                teacher_subject_map[teacher.id].append(course.subject_id)
+    
     # Organize schedules by grade
     schedules_by_grade = {}
     for grade in grades:
@@ -591,7 +601,7 @@ def view_schedule():
             'schedules': grade_schedules
         }
     
-    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers)
+    return render_template('schedules.html', schedules_by_grade=schedules_by_grade, courses=courses, subjects=subjects, teachers=teachers, teacher_subject_map=teacher_subject_map)
 
 
 @app.route('/schedule/add', methods=['POST'])
