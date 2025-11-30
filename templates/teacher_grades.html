@@ -11,8 +11,53 @@
     {% if grades_data %}
         {% for grade_id, data in grades_data.items() %}
         <div class="space-y-4">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg flex justify-between items-center">
                 <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
+                <button type="button" class="add-student-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold" data-grade-id="{{ grade_id }}">
+                    <i class="fas fa-plus"></i> Agregar Estudiante
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden modal-add-student-{{ grade_id }} hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                <div class="bg-white rounded-lg p-6 w-96 shadow-2xl">
+                    <h3 class="text-xl font-bold mb-4">Agregar Estudiante a {{ data.grade.name }}</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_student">
+                        <input type="hidden" name="grade_id" value="{{ grade_id }}">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2">Estudiante</label>
+                            <select name="student_id" class="w-full px-3 py-2 border-2 border-blue-300 rounded text-sm" required>
+                                <option value="">Selecciona un estudiante...</option>
+                                {% for grade in all_grades %}
+                                    {% if grade.id == grade_id %}
+                                        {% for student in grade.students %}
+                                            {% if not student.enrollments or not student.enrollments|selectattr('teacher_id', 'equalto', current_user.teacher_profile.id if current_user.role == 'teacher' else None)|list %}
+                                            <option value="{{ student.id }}">{{ student.apellido_paterno }} {{ student.apellido_materno }} {{ student.user.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2">Materia</label>
+                            <select name="subject_id" class="w-full px-3 py-2 border-2 border-blue-300 rounded text-sm" required>
+                                <option value="">Selecciona una materia...</option>
+                                {% for subject in all_subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold">
+                                <i class="fas fa-check"></i> Agregar
+                            </button>
+                            <button type="button" class="flex-1 close-modal-{{ grade_id }} bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
             
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -37,6 +82,7 @@
                             </td>
                             {% if item.has_enrollment %}
                             <form method="POST" class="contents" id="form-{{ item.enrollment.id }}">
+                                <input type="hidden" name="action" value="update_grades">
                                 <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                 <td class="px-6 py-4">
                                     <input type="number" name="semester_1" min="0" max="100" step="0.5" value="{{ item.enrollment.semester_1 or '' }}" placeholder="-" class="semester-input px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20 text-center edit-mode-{{ item.enrollment.id }}" data-enrollment-id="{{ item.enrollment.id }}" disabled>
@@ -57,9 +103,18 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button type="button" class="toggle-edit-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold" data-enrollment-id="{{ item.enrollment.id }}">
-                                        <i class="fas fa-edit"></i> Modificar
-                                    </button>
+                                    <div class="flex gap-2 justify-center">
+                                        <button type="button" class="toggle-edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-bold" data-enrollment-id="{{ item.enrollment.id }}">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                        <form method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar este estudiante?')">
+                                            <input type="hidden" name="action" value="delete_enrollment">
+                                            <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
+                                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-xs font-bold">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </form>
                             {% else %}
@@ -126,6 +181,24 @@ document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
             this.classList.remove('bg-green-500', 'hover:bg-green-600');
             this.classList.add('bg-blue-500', 'hover:bg-blue-600');
         }
+    });
+});
+
+// Modal de agregar estudiante
+document.querySelectorAll('.add-student-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const gradeId = this.getAttribute('data-grade-id');
+        const modal = document.querySelector('.modal-add-student-' + gradeId);
+        modal.style.display = 'flex';
+    });
+});
+
+document.querySelectorAll('[class*="close-modal-"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const classList = this.className.match(/close-modal-[\w-]+/)[0];
+        const gradeId = classList.replace('close-modal-', '');
+        const modal = document.querySelector('.modal-add-student-' + gradeId);
+        modal.style.display = 'none';
     });
 });
 
