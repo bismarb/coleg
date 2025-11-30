@@ -572,7 +572,12 @@ def view_schedule():
     courses = Course.query.all()
     grades = Grade.query.order_by(Grade.level).all()
     subjects = Subject.query.all()
-    teachers = Teacher.query.all()
+    
+    # Get only teachers with active contracts (end_contract_date is NULL or in the future)
+    today = date.today()
+    teachers = Teacher.query.filter(
+        (Teacher.end_contract_date == None) | (Teacher.end_contract_date >= today)
+    ).all()
     
     # Organize schedules by grade
     schedules_by_grade = {}
