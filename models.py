@@ -62,6 +62,7 @@ class Teacher(db.Model):
     apellido_paterno = db.Column(db.String(100), nullable=True)
     apellido_materno = db.Column(db.String(100), nullable=True)
     hire_date = db.Column(db.Date, nullable=False)
+    end_contract_date = db.Column(db.Date, nullable=True)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', backref='teacher_profile')
