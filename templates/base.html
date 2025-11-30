@@ -78,6 +78,18 @@
                         <span>Departamentos</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ url_for('attendance_record') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-clipboard-check text-lg"></i>
+                        <span>Asistencia</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('reports') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-file-chart-line text-lg"></i>
+                        <span>Reportes</span>
+                    </a>
+                </li>
                 {% endif %}
                 <li>
                     <a href="{{ url_for('courses') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
@@ -85,11 +97,25 @@
                         <span>Cursos</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ url_for('schedules') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-calendar-alt text-lg"></i>
+                        <span>Horarios</span>
+                    </a>
+                </li>
                 {% if current_user.role in ['admin', 'teacher'] %}
                 <li>
                     <a href="{{ url_for('grades') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-graduation-cap text-lg"></i>
                         <span>Calificaciones</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.role == 'parent' %}
+                <li>
+                    <a href="{{ url_for('my_children') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-child text-lg"></i>
+                        <span>Mis Hijos</span>
                     </a>
                 </li>
                 {% endif %}

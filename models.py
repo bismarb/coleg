@@ -65,6 +65,18 @@ class Teacher(db.Model):
     department = db.relationship('Department', backref='teachers')
 
 
+class Parent(db.Model):
+    __tablename__ = 'parents'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
+    student_id = db.Column(db.String(36), db.ForeignKey('students.id'), nullable=False)
+    relationship = db.Column(db.String(50), default='parent')
+    phone = db.Column(db.String(20))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='parent_profile')
+    student = db.relationship('Student', backref='parents')
+
+
 class Subject(db.Model):
     __tablename__ = 'subjects'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -90,6 +102,18 @@ class Course(db.Model):
     subject = db.relationship('Subject', backref='courses')
     teacher = db.relationship('Teacher', backref='courses')
     academic_period = db.relationship('AcademicPeriod', backref='courses')
+
+
+class Schedule(db.Model):
+    __tablename__ = 'schedules'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    course_id = db.Column(db.String(36), db.ForeignKey('courses.id'), nullable=False)
+    day_of_week = db.Column(db.String(20), nullable=False)
+    start_time = db.Column(db.String(10), nullable=False)
+    end_time = db.Column(db.String(10), nullable=False)
+    classroom = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    course = db.relationship('Course', backref='schedule')
 
 
 class Enrollment(db.Model):

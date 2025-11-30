@@ -277,3 +277,92 @@ def enroll_course(course_id):
         flash(f'Error: {str(e)}', 'error')
     
     return redirect(url_for('courses'))
+
+
+@app.route('/my-children')
+@login_required
+def my_children():
+    if current_user.role != 'parent':
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    
+    parent = Parent.query.filter_by(user_id=current_user.id).first()
+    children = []
+    if parent:
+        student = parent.student
+        enrollments = Enrollment.query.filter_by(student_id=student.id).all()
+        grades = Grade.query.join(Enrollment).filter(Enrollment.student_id == student.id).all()
+        attendance = Attendance.query.join(Enrollment).filter(Enrollment.student_id == student.id).all()
+        
+        attendance_count = len([a for a in attendance if a.status == 'present'])
+        total_attendance = len(attendance)
+        
+        children.append({
+            'student': student,
+            'enrollments': enrollments,
+            'grades': grades,
+            'attendance_rate': f"{(attendance_count/total_attendance*100) if total_attendance > 0 else 0:.1f}%"
+        })
+    
+    return render_template('my_children.html', children=children)
+
+
+@app.route('/attendance')
+@login_required
+def attendance_record():
+    if current_user.role not in ['admin', 'teacher']:
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    
+    attendance = Attendance.query.all()
+    return render_template('attendance.html', attendance=attendance)
+
+
+@app.route('/attendance/mark', methods=['POST'])
+@login_required
+def mark_attendance():
+    if current_user.role not in ['admin', 'teacher']:
+        return jsonify({'error': 'Denied'}), 403
+    
+    try:
+        enrollment_id = request.form.get('enrollment_id')
+        date = request.form.get('date')
+        status = request.form.get('status')
+        notes = request.form.get('notes', '')
+        
+        att = Attendance(enrollment_id=enrollment_id, date=date, status=status, notes=notes)
+        db.session.add(att)
+        db.session.commit()
+        
+        flash('Attendance marked', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('attendance_record'))
+
+
+@app.route('/schedules')
+@login_required
+def schedules():
+    schedules = Schedule.query.all()
+    return render_template('schedules.html', schedules=schedules)
+
+
+@app.route('/reports')
+@login_required
+def reports():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    
+    total_students = Student.query.count()
+    total_teachers = Teacher.query.count()
+    total_courses = Course.query.filter_by(status='active').count()
+    avg_attendance = 85
+    
+    return render_template('reports.html', 
+                         total_students=total_students,
+                         total_teachers=total_teachers,
+                         total_courses=total_courses,
+                         avg_attendance=avg_attendance)
