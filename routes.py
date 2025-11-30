@@ -633,14 +633,15 @@ def teacher_grades():
             enrollment = Enrollment.query.filter_by(student_id=student.id, teacher_id=teacher.id).first()
             
             if enrollment:
-                # Calculate average from three semesters
-                semesters = [enrollment.semester_1, enrollment.semester_2, enrollment.semester_3]
-                valid_semesters = [float(s) for s in semesters if s is not None]
-                total_score = sum(valid_semesters) / len(valid_semesters) if valid_semesters else 0
+                # Calculate average from three semesters divided by 3
+                sem1 = float(enrollment.semester_1) if enrollment.semester_1 else 0
+                sem2 = float(enrollment.semester_2) if enrollment.semester_2 else 0
+                sem3 = float(enrollment.semester_3) if enrollment.semester_3 else 0
+                total_score = round((sem1 + sem2 + sem3) / 3, 2)
                 students_with_scores.append({
                     'student': student,
                     'enrollment': enrollment,
-                    'total_score': round(total_score, 2),
+                    'total_score': total_score,
                     'has_enrollment': True
                 })
             else:

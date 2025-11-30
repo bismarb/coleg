@@ -84,14 +84,8 @@ document.querySelectorAll('.semester-input').forEach(input => {
             const sem2 = parseFloat(form.querySelector('input[name="semester_2"]').value) || 0;
             const sem3 = parseFloat(form.querySelector('input[name="semester_3"]').value) || 0;
             
-            // Contar cuántos semestres tienen valores
-            const valuesCount = (sem1 > 0 ? 1 : 0) + (sem2 > 0 ? 1 : 0) + (sem3 > 0 ? 1 : 0);
-            
-            // Calcular promedio
-            let promedio = 0;
-            if (valuesCount > 0) {
-                promedio = (sem1 + sem2 + sem3) / valuesCount;
-            }
+            // Calcular promedio dividiendo siempre entre 3
+            const promedio = Math.round(((sem1 + sem2 + sem3) / 3) * 100) / 100;
             
             // Mostrar promedio
             const promediElement = document.getElementById('promedio-' + enrollmentId);
