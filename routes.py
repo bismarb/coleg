@@ -96,6 +96,17 @@ def add_student():
         apellido_paterno = request.form.get('apellido_paterno')
         apellido_materno = request.form.get('apellido_materno')
         
+        # Validar que el grado tiene cupos disponibles
+        grade = Grade.query.get(grade_id)
+        if not grade:
+            flash('Grado no encontrado', 'error')
+            return redirect(url_for('students'))
+        
+        enrolled_count = Student.query.filter_by(grade_id=grade_id).count()
+        if enrolled_count >= grade.max_students:
+            flash(f'El grado {grade.name} está lleno ({enrolled_count}/{grade.max_students}). No se pueden agregar más estudiantes.', 'error')
+            return redirect(url_for('students'))
+        
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
             flash('El email ya está registrado', 'error')

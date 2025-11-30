@@ -14,14 +14,14 @@
             <input type="text" id="searchInput" placeholder="Buscar por nombre, apellido, email, código o grado..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onkeyup="filterStudents()">
         </div>
     </div>
-    
+
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <table class="w-full">
-            <thead class="bg-gradient-to-r from-sky-600 to-sky-700 text-white">
+            <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                 <tr>
                     <th class="px-6 py-4 text-left">Nombre</th>
-                    <th class="px-6 py-4 text-left">Ap. Paterno</th>
-                    <th class="px-6 py-4 text-left">Ap. Materno</th>
+                    <th class="px-6 py-4 text-left">Apellido Paterno</th>
+                    <th class="px-6 py-4 text-left">Apellido Materno</th>
                     <th class="px-6 py-4 text-left">Email</th>
                     <th class="px-6 py-4 text-left">Código</th>
                     <th class="px-6 py-4 text-left">Grado</th>
@@ -57,7 +57,7 @@
 </div>
 
 <div id="addStudentModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-8 max-w-md border-t-4 border-blue-500 shadow-2xl">
+    <div class="bg-white rounded-2xl p-8 max-w-md border-t-4 border-blue-500 shadow-2xl max-h-96 overflow-y-auto">
         <h2 class="text-2xl font-bold mb-6 text-gray-800">Agregar Estudiante</h2>
         <form method="POST" action="{{ url_for('add_student') }}" class="space-y-5">
             <div>
@@ -82,15 +82,20 @@
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Grado</label>
-                <select name="grade_id" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+                <select name="grade_id" id="gradeSelect" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800" onchange="checkGradeCapacity()">
                     <option value="">Selecciona un grado</option>
                     {% for grade in grades %}
-                    <option value="{{ grade.id }}">{{ grade.name }}</option>
+                    <option value="{{ grade.id }}" data-max="{{ grade.max_students }}" data-enrolled="{{ grade.students|length }}" data-name="{{ grade.name }}">
+                        {{ grade.name }} ({{ grade.students|length }}/{{ grade.max_students }})
+                    </option>
                     {% endfor %}
                 </select>
             </div>
+            <div id="capacityWarning" style="display:none" class="bg-red-100 border-l-4 border-red-500 p-4 rounded">
+                <p class="text-sm text-red-700"><i class="fas fa-exclamation-circle mr-2"></i><strong id="warningText"></strong></p>
+            </div>
             <div class="flex gap-3 pt-4">
-                <button type="submit" class="flex-1 gradient-btn text-white py-3 rounded-lg transition font-bold">Guardar</button>
+                <button type="submit" id="submitBtn" class="flex-1 gradient-btn text-white py-3 rounded-lg transition font-bold">Guardar</button>
                 <button type="button" onclick="closeModal('addStudentModal')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg transition font-bold">Cancelar</button>
             </div>
         </form>
@@ -98,8 +103,54 @@
 </div>
 
 <script>
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function openModal(id) { 
+    document.getElementById(id).style.display = 'flex';
+    resetGradeCapacityWarning();
+}
+function closeModal(id) { 
+    document.getElementById(id).style.display = 'none';
+    resetGradeCapacityWarning();
+}
+
+function resetGradeCapacityWarning() {
+    document.getElementById('capacityWarning').style.display = 'none';
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+}
+
+function checkGradeCapacity() {
+    const gradeSelect = document.getElementById('gradeSelect');
+    const selectedOption = gradeSelect.options[gradeSelect.selectedIndex];
+    const submitBtn = document.getElementById('submitBtn');
+    const capacityWarning = document.getElementById('capacityWarning');
+    const warningText = document.getElementById('warningText');
+    
+    if (!selectedOption.value) {
+        resetGradeCapacityWarning();
+        return;
+    }
+    
+    const maxStudents = parseInt(selectedOption.dataset.max);
+    const enrolled = parseInt(selectedOption.dataset.enrolled);
+    const gradeName = selectedOption.dataset.name;
+    
+    if (enrolled >= maxStudents) {
+        // Grado lleno
+        warningText.textContent = `El grado "${gradeName}" está LLENO (${enrolled}/${maxStudents}). No se pueden agregar más estudiantes.`;
+        capacityWarning.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        // Grado con cupos
+        const available = maxStudents - enrolled;
+        warningText.textContent = `Cupos disponibles en "${gradeName}": ${available}`;
+        capacityWarning.style.display = 'none';
+        capacityWarning.classList.remove('bg-red-100', 'border-red-500');
+        capacityWarning.classList.add('bg-green-100', 'border-green-500');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
 
 function filterStudents() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
