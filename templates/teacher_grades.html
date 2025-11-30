@@ -24,12 +24,13 @@
                     </thead>
                     <tbody class="divide-y">
                         {% for item in data.students_with_scores %}
-                        <tr class="hover:bg-sky-50">
+                        <tr class="hover:bg-sky-50 {% if not item.has_enrollment %}bg-gray-50{% endif %}">
                             <td class="px-6 py-4 font-semibold">{{ item.student.user.name }}</td>
                             <td class="px-6 py-4 text-sm">
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">{{ item.student.grade.name }}</span>
                             </td>
                             <td class="px-6 py-4">
+                                {% if item.has_enrollment %}
                                 <form method="POST" class="flex gap-2 items-center" style="display:flex; gap: 0.5rem;">
                                     <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                     <input type="number" name="score" min="0" max="100" step="0.5" placeholder="0-100" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20">
@@ -38,9 +39,12 @@
                                         <i class="fas fa-save"></i>
                                     </button>
                                 </form>
+                                {% else %}
+                                <span class="text-gray-400 text-sm italic">No inscrito contigo</span>
+                                {% endif %}
                             </td>
                             <td class="px-6 py-4 text-center font-bold text-lg">
-                                {% if item.total_score > 0 %}
+                                {% if item.has_enrollment and item.total_score > 0 %}
                                     <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">
                                         {{ item.total_score }}
                                     </span>

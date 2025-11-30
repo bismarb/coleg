@@ -617,28 +617,39 @@ def teacher_grades():
         flash('Profesor no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
-    # Get all enrollments for this teacher
-    enrollments = Enrollment.query.filter_by(teacher_id=teacher.id).all()
+    # Get all grades
+    all_grades = Grade.query.order_by(Grade.level).all()
     
-    # Get only enrollments from this teacher grouped by grade
+    # Get all students grouped by grade
     grades_data = {}
-    for enrollment in enrollments:
-        grade = enrollment.grade
-        if grade.id not in grades_data:
-            # Get all enrollments for THIS TEACHER in this grade
-            grade_enrollments = Enrollment.query.filter_by(teacher_id=teacher.id, grade_id=grade.id).all()
+    for grade in all_grades:
+        # Get all students in this grade
+        students_in_grade = Student.query.filter_by(grade_id=grade.id).all()
+        
+        # Calculate total scores for each student
+        students_with_scores = []
+        for student in students_in_grade:
+            # Get enrollment with this teacher (if exists)
+            enrollment = Enrollment.query.filter_by(student_id=student.id, teacher_id=teacher.id).first()
             
-            # Calculate total scores for each enrollment (student in teacher's course)
-            students_with_scores = []
-            for enr in grade_enrollments:
-                assessments = Assessment.query.filter_by(enrollment_id=enr.id).all()
+            if enrollment:
+                assessments = Assessment.query.filter_by(enrollment_id=enrollment.id).all()
                 total_score = sum(float(a.score) for a in assessments) / len(assessments) if assessments else 0
                 students_with_scores.append({
-                    'student': enr.student,
-                    'enrollment': enr,
-                    'total_score': round(total_score, 2)
+                    'student': student,
+                    'enrollment': enrollment,
+                    'total_score': round(total_score, 2),
+                    'has_enrollment': True
                 })
-            
+            else:
+                students_with_scores.append({
+                    'student': student,
+                    'enrollment': None,
+                    'total_score': 0,
+                    'has_enrollment': False
+                })
+        
+        if students_with_scores:
             grades_data[grade.id] = {
                 'grade': grade,
                 'students_with_scores': students_with_scores
