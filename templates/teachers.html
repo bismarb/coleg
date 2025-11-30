@@ -5,43 +5,43 @@
 {% block content %}
 <div>
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-white flex items-center gap-2">
-            <i class="fas fa-chalkboard-user text-yellow-400"></i> Profesores
+        <h1 class="text-3xl font-bold text-sky-800 flex items-center gap-2">
+            <i class="fas fa-chalkboard-user text-sky-600"></i> Profesores
         </h1>
         {% if current_user.role == 'admin' %}
-        <button onclick="openModal('newTeacherModal')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded transition font-medium">
+        <button onclick="openModal('newTeacherModal')" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded transition font-medium">
             <i class="fas fa-plus"></i> Nuevo Profesor
         </button>
         {% endif %}
     </div>
 
-    <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto border border-gray-700">
+    <div class="bg-white rounded-lg shadow-lg overflow-x-auto border border-sky-300">
         <table class="w-full">
-            <thead class="bg-gray-700">
+            <thead class="bg-sky-100">
                 <tr>
-                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-300">Código</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-300">Nombre</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-300">Especialización</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-300">Estado</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-sky-800">Código</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-sky-800">Nombre</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-sky-800">Especialización</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-sky-800">Estado</th>
                     {% if current_user.role == 'admin' %}
-                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-300">Acciones</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-sky-800">Acciones</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for teacher in teachers %}
-                <tr class="border-t border-gray-700 hover:bg-gray-700 transition">
-                    <td class="px-6 py-3 text-gray-300">{{ teacher.teacher_code }}</td>
-                    <td class="px-6 py-3 text-gray-300">{{ teacher.user.name }}</td>
-                    <td class="px-6 py-3 text-gray-300">{{ teacher.specialization or 'N/A' }}</td>
+                <tr class="border-t border-sky-200 hover:bg-sky-50 transition">
+                    <td class="px-6 py-3 text-gray-700">{{ teacher.teacher_code }}</td>
+                    <td class="px-6 py-3 text-gray-700">{{ teacher.user.name }}</td>
+                    <td class="px-6 py-3 text-gray-700">{{ teacher.specialization or 'N/A' }}</td>
                     <td class="px-6 py-3">
-                        <span class="px-2 py-1 rounded text-sm {% if teacher.status == 'active' %}bg-green-900 text-green-300{% else %}bg-red-900 text-red-300{% endif %}">
+                        <span class="px-2 py-1 rounded text-sm {% if teacher.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
                             {{ teacher.status }}
                         </span>
                     </td>
                     {% if current_user.role == 'admin' %}
                     <td class="px-6 py-3">
-                        <button onclick="deleteTeacher('{{ teacher.id }}')" class="text-red-400 hover:text-red-300 text-sm">Eliminar</button>
+                        <button onclick="deleteTeacher('{{ teacher.id }}')" class="text-red-600 hover:text-red-700 text-sm font-semibold">Eliminar</button>
                     </td>
                     {% endif %}
                 </tr>
@@ -52,21 +52,21 @@
 </div>
 
 {% if current_user.role == 'admin' %}
-<div id="newTeacherModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-8 max-w-md border border-gray-700">
-        <h2 class="text-2xl font-bold mb-4 text-white">Nuevo Profesor</h2>
+<div id="newTeacherModal" style="display:none" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md border border-sky-300">
+        <h2 class="text-2xl font-bold mb-4 text-sky-800">Nuevo Profesor</h2>
         <form method="POST" action="{{ url_for('create_teacher') }}" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-300">Código de Profesor</label>
-                <input type="text" name="teacher_code" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white">
+                <label class="block text-sm font-medium text-gray-700">Código de Profesor</label>
+                <input type="text" name="teacher_code" required class="w-full px-4 py-2 bg-sky-50 border border-sky-300 rounded text-gray-800">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-300">Especialización</label>
-                <input type="text" name="specialization" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white">
+                <label class="block text-sm font-medium text-gray-700">Especialización</label>
+                <input type="text" name="specialization" class="w-full px-4 py-2 bg-sky-50 border border-sky-300 rounded text-gray-800">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black py-2 rounded transition font-medium">Guardar</button>
-                <button type="button" onclick="closeModal('newTeacherModal')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded transition">Cancelar</button>
+                <button type="submit" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded transition font-medium">Guardar</button>
+                <button type="button" onclick="closeModal('newTeacherModal')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded transition">Cancelar</button>
             </div>
         </form>
     </div>
