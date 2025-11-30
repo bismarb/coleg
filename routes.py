@@ -400,6 +400,82 @@ def grades():
     return render_template('grades.html', grades=grades)
 
 
+@app.route('/grade/add', methods=['POST'])
+@login_required
+def add_grade():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        name = request.form.get('name')
+        level = request.form.get('level')
+        max_students = request.form.get('max_students', 40)
+        
+        grade = Grade(name=name, level=level, max_students=max_students)
+        db.session.add(grade)
+        db.session.commit()
+        
+        flash('Grado agregado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('grades'))
+
+
+@app.route('/grade/<grade_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_grade(grade_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('grades'))
+    
+    grade = Grade.query.get(grade_id)
+    if not grade:
+        flash('Grado no encontrado', 'error')
+        return redirect(url_for('grades'))
+    
+    if request.method == 'POST':
+        try:
+            grade.name = request.form.get('name')
+            grade.level = request.form.get('level')
+            grade.max_students = request.form.get('max_students')
+            
+            db.session.commit()
+            flash('Grado actualizado', 'success')
+            return redirect(url_for('grades'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_grade.html', grade=grade)
+
+
+@app.route('/grade/<grade_id>/delete', methods=['POST'])
+@login_required
+def delete_grade(grade_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        grade = Grade.query.get(grade_id)
+        if not grade:
+            flash('Grado no encontrado', 'error')
+            return redirect(url_for('grades'))
+        
+        Student.query.filter_by(grade_id=grade_id).delete()
+        Course.query.filter_by(grade_id=grade_id).delete()
+        db.session.delete(grade)
+        db.session.commit()
+        
+        flash('Grado eliminado', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('grades'))
+
+
 @app.route('/student/<student_id>/assessments')
 @login_required
 def student_assessments(student_id):
