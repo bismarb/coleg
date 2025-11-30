@@ -16,42 +16,34 @@
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left">Estudiante</th>
-                            <th class="px-6 py-4 text-left">Tipo Evaluación</th>
+                            <th class="px-6 py-4 text-left">Inscrito</th>
                             <th class="px-6 py-4 text-left">Calificación</th>
-                            <th class="px-6 py-4 text-left">Fecha</th>
-                            <th class="px-6 py-4 text-left">Acción</th>
+                            <th class="px-6 py-4 text-center">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        {% for student in data.students %}
-                        {% set enrollment = data.enrollments|selectattr('student_id', 'equalto', student.id)|first %}
+                        {% for item in data.students_with_scores %}
                         <tr class="hover:bg-sky-50">
-                            <td class="px-6 py-4 font-semibold">{{ student.user.name }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ item.student.user.name }}</td>
                             <td class="px-6 py-4">
-                                {% if enrollment %}
                                 <form method="POST" class="flex gap-2 items-center" style="display:flex; gap: 0.5rem;">
-                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
-                                    <select name="assessment_type" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm">
-                                        <option value="">Tipo</option>
-                                        <option value="Quiz">Quiz</option>
-                                        <option value="Parcial">Parcial</option>
-                                        <option value="Final">Final</option>
-                                        <option value="Tarea">Tarea</option>
-                                    </select>
+                                    <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
                                     <input type="number" name="score" min="0" max="100" step="0.5" placeholder="0-100" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm w-20">
                                     <input type="date" name="assessment_date" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm">
                                     <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-bold">
                                         <i class="fas fa-save"></i>
                                     </button>
                                 </form>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-lg">
+                                {% if item.total_score > 0 %}
+                                    <span class="{% if item.total_score >= 60 %}text-green-600{% else %}text-red-600{% endif %}">
+                                        {{ item.total_score }}
+                                    </span>
                                 {% else %}
-                                <span class="text-gray-400 text-sm">No inscrito en cursos</span>
+                                    <span class="text-gray-400">-</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 text-sm">-</td>
-                            <td class="px-6 py-4 text-sm">-</td>
-                            <td class="px-6 py-4">-</td>
                         </tr>
                         {% endfor %}
                     </tbody>
