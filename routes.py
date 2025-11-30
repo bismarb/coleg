@@ -708,11 +708,11 @@ def teacher_grades():
                     'has_enrollment': True
                 })
         
-        if students_with_scores:
-            grades_data[grade.id] = {
-                'grade': grade,
-                'students_with_scores': students_with_scores
-            }
+        # Always add grade to grades_data, even if no students are enrolled yet
+        grades_data[grade.id] = {
+            'grade': grade,
+            'students_with_scores': students_with_scores
+        }
     
     if request.method == 'POST':
         try:
