@@ -850,9 +850,33 @@ def teacher_attendance():
             # Get only enrollments from THIS TEACHER in this grade
             enrollments = Enrollment.query.filter_by(teacher_id=teacher.id, grade_id=grade.id).all()
             
+            # Calculate attendance statistics for each enrollment
+            enrollments_with_stats = []
+            for enr in enrollments:
+                attendance_records = Attendance.query.filter_by(enrollment_id=enr.id).all()
+                total_records = len(attendance_records)
+                present_count = len([a for a in attendance_records if a.status == 'present'])
+                absent_count = len([a for a in attendance_records if a.status == 'absent'])
+                late_count = len([a for a in attendance_records if a.status == 'late'])
+                excused_count = len([a for a in attendance_records if a.status == 'excused'])
+                
+                attendance_percentage = round((present_count / total_records * 100), 1) if total_records > 0 else 0
+                recent_attendance = sorted(attendance_records, key=lambda x: x.attendance_date, reverse=True)[:5]
+                
+                enrollments_with_stats.append({
+                    'enrollment': enr,
+                    'total_records': total_records,
+                    'present_count': present_count,
+                    'absent_count': absent_count,
+                    'late_count': late_count,
+                    'excused_count': excused_count,
+                    'attendance_percentage': attendance_percentage,
+                    'recent_attendance': recent_attendance
+                })
+            
             grades_data[grade.id] = {
                 'grade': grade,
-                'enrollments': enrollments
+                'enrollments': enrollments_with_stats
             }
     
     if request.method == 'POST':
@@ -860,6 +884,10 @@ def teacher_attendance():
             enrollment_id = request.form.get('enrollment_id')
             attendance_date = request.form.get('attendance_date')
             status = request.form.get('status')
+            
+            # If no date provided, use today's date
+            if not attendance_date:
+                attendance_date = date.today()
             
             existing = Attendance.query.filter_by(enrollment_id=enrollment_id, attendance_date=attendance_date).first()
             if existing:
@@ -876,7 +904,7 @@ def teacher_attendance():
         
         return redirect(url_for('teacher_attendance'))
     
-    return render_template('teacher_attendance.html', grades_data=grades_data)
+    return render_template('teacher_attendance.html', grades_data=grades_data, today=date.today())
 
 
 @app.route('/student/my-courses')

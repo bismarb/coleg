@@ -3,50 +3,108 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-clipboard-check text-green-600 mr-2"></i>Registrar Asistencia</h1>
+        <div class="w-80">
+            <input type="text" placeholder="🔍 Búsqueda de estudiantes..." id="global-search" class="w-full px-4 py-3 rounded-lg border-2 border-green-300 text-gray-800 text-sm focus:outline-none focus:border-green-600 shadow-sm">
+        </div>
     </div>
     
     {% if grades_data %}
         {% for grade_id, data in grades_data.items() %}
         <div class="space-y-4">
             <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg">
-                <h2 class="text-2xl font-bold">{{ data.grade.name }}</h2>
+                <h2 class="text-2xl font-bold">{{ data.grade.name }} - {{ data.enrollments|length }} Estudiantes</h2>
             </div>
             
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-green-600 to-green-700 text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left">Inscrito</th>
-                            <th class="px-6 py-4 text-left">Fecha</th>
-                            <th class="px-6 py-4 text-left">Estado</th>
+                            <th class="px-6 py-4 text-left">Estudiante</th>
+                            <th class="px-6 py-4 text-center">Asistencia %</th>
+                            <th class="px-6 py-4 text-center">Presente</th>
+                            <th class="px-6 py-4 text-center">Ausente</th>
+                            <th class="px-6 py-4 text-center">Llega Tarde</th>
+                            <th class="px-6 py-4 text-center">Justificado</th>
+                            <th class="px-6 py-4 text-left">Registrar Asistencia Hoy</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y">
-                        {% for enrollment in data.enrollments %}
-                        <tr class="hover:bg-sky-50">
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.student.apellido_paterno or '' }} {{ enrollment.student.apellido_materno or '' }} {{ enrollment.student.user.name }}</td>
+                    <tbody class="divide-y search-body-{{ grade_id }}">
+                        {% for item in data.enrollments %}
+                        <tr class="hover:bg-green-50 student-row" data-student-name="{{ item.enrollment.student.apellido_paterno or '' }} {{ item.enrollment.student.apellido_materno or '' }} {{ item.enrollment.student.user.name }}">
+                            <td class="px-6 py-4 font-semibold">
+                                <div>{{ item.enrollment.student.apellido_paterno or '' }} {{ item.enrollment.student.apellido_materno or '' }}</div>
+                                <div class="text-xs text-gray-600">{{ item.enrollment.student.user.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-bold {% if item.attendance_percentage >= 80 %}bg-green-100 text-green-800{% elif item.attendance_percentage >= 70 %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ item.attendance_percentage }}%
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">{{ item.present_count }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">{{ item.absent_count }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">{{ item.late_count }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{{ item.excused_count }}</span>
+                            </td>
                             <td class="px-6 py-4">
-                                <form method="POST" class="flex gap-2 items-center" style="display:flex; gap: 0.5rem;">
-                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
-                                    <input type="date" name="attendance_date" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm">
-                                    <select name="status" required class="px-3 py-2 bg-sky-50 border-2 border-sky-200 rounded text-sm">
-                                        <option value="">Estado</option>
-                                        <option value="present">Presente</option>
-                                        <option value="absent">Ausente</option>
-                                        <option value="late">Llega Tarde</option>
-                                        <option value="excused">Justificado</option>
-                                    </select>
-                                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-bold">
-                                        <i class="fas fa-save"></i>
+                                <form method="POST" class="flex gap-1 attendance-form" style="display:flex; gap: 0.25rem;">
+                                    <input type="hidden" name="enrollment_id" value="{{ item.enrollment.id }}">
+                                    <input type="hidden" name="attendance_date" value="{{ today }}">
+                                    <button type="submit" name="status" value="present" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-bold" title="Presente">
+                                        <i class="fas fa-check"></i> P
+                                    </button>
+                                    <button type="submit" name="status" value="absent" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold" title="Ausente">
+                                        <i class="fas fa-times"></i> A
+                                    </button>
+                                    <button type="submit" name="status" value="late" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold" title="Llega Tarde">
+                                        <i class="fas fa-hourglass-end"></i> L
+                                    </button>
+                                    <button type="submit" name="status" value="excused" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" title="Justificado">
+                                        <i class="fas fa-file-alt"></i> J
                                     </button>
                                 </form>
                             </td>
-                            <td class="px-6 py-4 text-sm">-</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+
+            <!-- Historial reciente para cada estudiante -->
+            {% if data.enrollments %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                {% for item in data.enrollments %}
+                {% if item.recent_attendance %}
+                <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                    <h4 class="font-semibold text-sm mb-2">{{ item.enrollment.student.user.name }} - Últimas asistencias</h4>
+                    <div class="flex gap-1">
+                        {% for attendance in item.recent_attendance %}
+                        <span class="
+                            {% if attendance.status == 'present' %}bg-green-500 text-white
+                            {% elif attendance.status == 'absent' %}bg-red-500 text-white
+                            {% elif attendance.status == 'late' %}bg-yellow-500 text-white
+                            {% elif attendance.status == 'excused' %}bg-blue-500 text-white
+                            {% endif %}
+                            px-2 py-1 rounded text-xs font-bold" title="{{ attendance.attendance_date }}">
+                            {% if attendance.status == 'present' %}P
+                            {% elif attendance.status == 'absent' %}A
+                            {% elif attendance.status == 'late' %}L
+                            {% elif attendance.status == 'excused' %}J{% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
         </div>
         {% endfor %}
     {% else %}
@@ -56,4 +114,43 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+// Búsqueda general
+const globalSearch = document.getElementById('global-search');
+if (globalSearch) {
+    globalSearch.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const allRows = document.querySelectorAll('.student-row');
+        
+        allRows.forEach(row => {
+            const studentName = row.getAttribute('data-student-name').toLowerCase();
+            if (studentName.includes(searchTerm) || searchTerm === '') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Confirmación de asistencia rápida
+document.querySelectorAll('.attendance-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const statusButton = e.submitter;
+        const statusMap = {
+            'present': 'Presente',
+            'absent': 'Ausente',
+            'late': 'Llega Tarde',
+            'excused': 'Justificado'
+        };
+        const status = statusButton.value;
+        
+        if (confirm(`¿Marcar como ${statusMap[status]}?`)) {
+            this.submit();
+        }
+    });
+});
+</script>
 {% endblock %}
