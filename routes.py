@@ -1174,3 +1174,32 @@ def admin_teacher_credentials():
     # Get all teachers with their users
     teachers = Teacher.query.all()
     return render_template('admin_teacher_credentials.html', teachers=teachers)
+
+
+@app.route('/my-profile', methods=['GET', 'POST'])
+@login_required
+def my_profile():
+    if request.method == 'POST':
+        try:
+            email = request.form.get('email')
+            password = request.form.get('password')
+            
+            # Check if email already exists (and it's not the current user's email)
+            existing = User.query.filter_by(email=email).first()
+            if existing and existing.id != current_user.id:
+                flash('El email ya está en uso', 'error')
+                return redirect(url_for('my_profile'))
+            
+            current_user.email = email
+            if password:
+                current_user.password = hash_password(password)
+            
+            db.session.commit()
+            flash('Tu perfil ha sido actualizado correctamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+        
+        return redirect(url_for('my_profile'))
+    
+    return render_template('my_profile.html', user=current_user)
