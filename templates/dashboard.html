@@ -6,9 +6,56 @@
 <div class="space-y-6">
     <div class="mb-8">
         <h1 class="text-4xl font-bold text-gray-800">¡Bienvenido, {{ current_user.name }}!</h1>
-        <p class="text-gray-500 mt-2">Panel de control del sistema académico</p>
+        <p class="text-gray-500 mt-2">{% if current_user.role == 'admin' %}Panel de control del sistema académico{% elif current_user.role == 'teacher' %}Panel de control - Calificaciones y Asistencia{% else %}Mi Portal de Estudiante{% endif %}</p>
     </div>
 
+    {% if current_user.role == 'teacher' %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-8 rounded-2xl shadow-lg card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm uppercase font-bold">Mis Cursos</p>
+                    <p class="text-4xl font-bold mt-2">{{ stats.get('courses', 0) }}</p>
+                </div>
+                <i class="fas fa-book text-5xl opacity-20"></i>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-8 rounded-2xl shadow-lg card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm uppercase font-bold">Estudiantes Total</p>
+                    <p class="text-4xl font-bold mt-2">{{ stats.get('students', 0) }}</p>
+                </div>
+                <i class="fas fa-users text-5xl opacity-20"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <a href="{{ url_for('teacher_grades') }}" class="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-blue-500 card-hover cursor-pointer hover:shadow-xl transition">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-100 p-4 rounded-lg">
+                    <i class="fas fa-star text-2xl text-blue-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Registrar Calificaciones</h3>
+                    <p class="text-sm text-gray-500 mt-1">Ingresa notas de tus estudiantes</p>
+                </div>
+            </div>
+        </a>
+        <a href="{{ url_for('teacher_attendance') }}" class="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-green-500 card-hover cursor-pointer hover:shadow-xl transition">
+            <div class="flex items-center gap-4">
+                <div class="bg-green-100 p-4 rounded-lg">
+                    <i class="fas fa-clipboard-check text-2xl text-green-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Registrar Asistencia</h3>
+                    <p class="text-sm text-gray-500 mt-1">Marca la asistencia de estudiantes</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% else %}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         {% for key, value in stats.items() %}
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-8 rounded-2xl shadow-lg">
@@ -29,5 +76,6 @@
         </h2>
         <p class="text-gray-600">Accede a los módulos desde el menú lateral según tu rol. Administra estudiantes, profesores, cursos y registra calificaciones y asistencia.</p>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

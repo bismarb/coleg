@@ -78,7 +78,6 @@
                         <span>Grados</span>
                     </a>
                 </li>
-                {% endif %}
                 <li>
                     <a href="{{ url_for('courses') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
                         <i class="fas fa-book text-lg"></i>
@@ -91,6 +90,27 @@
                         <span>Horarios</span>
                     </a>
                 </li>
+                {% elif current_user.role == 'teacher' %}
+                <li>
+                    <a href="{{ url_for('teacher_grades') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-star text-lg"></i>
+                        <span>Calificaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-clipboard-check text-lg"></i>
+                        <span>Asistencia</span>
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <a href="{{ url_for('courses') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-book text-lg"></i>
+                        <span>Cursos</span>
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </aside>
         <main class="flex-1 p-8 fade-in">
