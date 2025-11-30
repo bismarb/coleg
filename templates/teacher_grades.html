@@ -284,22 +284,23 @@ document.querySelectorAll('.semester-input').forEach(input => {
         const form = document.getElementById('form-' + enrollmentId);
         
         if (form) {
-            const sem1 = parseFloat(form.querySelector('input[name="semester_1"]').value) || 0;
-            const sem2 = parseFloat(form.querySelector('input[name="semester_2"]').value) || 0;
-            const sem3 = parseFloat(form.querySelector('input[name="semester_3"]').value) || 0;
+            const sem1Input = form.querySelector('input[name="semester_1"]');
+            const sem2Input = form.querySelector('input[name="semester_2"]');
+            const sem3Input = form.querySelector('input[name="semester_3"]');
             
-            // Calcular promedio dividiendo siempre entre 3
-            const promedio = Math.round(((sem1 + sem2 + sem3) / 3) * 100) / 100;
+            const sem1 = sem1Input ? (parseFloat(sem1Input.value) || 0) : 0;
+            const sem2 = sem2Input ? (parseFloat(sem2Input.value) || 0) : 0;
+            const sem3 = sem3Input ? (parseFloat(sem3Input.value) || 0) : 0;
+            
+            // Calcular promedio: (semestre1 + semestre2 + semestre3) / 3
+            const promedio = (sem1 + sem2 + sem3) / 3;
+            const promedioRedondeado = Math.round(promedio * 100) / 100;
             
             // Mostrar promedio
             const promediElement = document.getElementById('promedio-' + enrollmentId);
             if (promediElement) {
-                if (promedio > 0) {
-                    const colorClass = promedio >= 60 ? 'text-green-600' : 'text-red-600';
-                    promediElement.innerHTML = `<span class="${colorClass}">${promedio.toFixed(2)}</span>`;
-                } else {
-                    promediElement.innerHTML = '<span class="text-gray-400">-</span>';
-                }
+                const colorClass = promedioRedondeado >= 60 ? 'text-green-600' : 'text-red-600';
+                promediElement.innerHTML = `<span class="${colorClass}">${promedioRedondeado.toFixed(2)}</span>`;
             }
             
             // Guardar automáticamente
