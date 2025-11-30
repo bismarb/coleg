@@ -3,6 +3,7 @@ Application Configuration - Flask Setup for Academic Management System
 MVC Architecture: Models + Views + Controllers
 """
 
+import os
 from flask import Flask
 from flask_login import LoginManager
 from models import db, User
@@ -12,8 +13,8 @@ from views import views
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = 'tu-clave-secreta-super-segura-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost/academia_db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-2024-academia')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/academia_db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -36,10 +37,15 @@ def load_user(user_id):
 app.register_blueprint(views)
 
 # Create tables on app startup
-with app.app_context():
-    db.create_all()
-    print("✅ Database tables created/verified")
+def init_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            print("✅ Database tables created/verified")
+        except Exception as e:
+            print(f"⚠️ Database initialization warning: {e}")
 
 if __name__ == '__main__':
     print("🚀 Academic Management System - MVC Architecture")
+    init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)

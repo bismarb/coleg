@@ -21,36 +21,53 @@ class StudentController:
     
     @staticmethod
     def create(user_id, student_code, grade, **kwargs):
-        student = Student(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            student_code=student_code,
-            grade=grade,
-            enrollment_date=kwargs.get('enrollment_date', datetime.utcnow().date()),
-            status=kwargs.get('status', 'active'),
-            **{k: v for k, v in kwargs.items() if k not in ['enrollment_date', 'status']}
-        )
-        db.session.add(student)
-        db.session.commit()
-        return student
+        try:
+            student = Student(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                student_code=student_code,
+                grade=grade,
+                enrollment_date=kwargs.get('enrollment_date', datetime.utcnow().date()),
+                status=kwargs.get('status', 'active')
+            )
+            if 'date_of_birth' in kwargs:
+                student.date_of_birth = kwargs['date_of_birth']
+            if 'address' in kwargs:
+                student.address = kwargs['address']
+            if 'phone' in kwargs:
+                student.phone = kwargs['phone']
+            db.session.add(student)
+            db.session.commit()
+            return student
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def update(student_id, **kwargs):
-        student = Student.query.get(student_id)
-        if student:
-            for key, value in kwargs.items():
-                if hasattr(student, key):
-                    setattr(student, key, value)
-            db.session.commit()
-        return student
+        try:
+            student = Student.query.get(student_id)
+            if student:
+                for key, value in kwargs.items():
+                    if hasattr(student, key) and key not in ['id', 'created_at']:
+                        setattr(student, key, value)
+                db.session.commit()
+            return student
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def delete(student_id):
-        student = Student.query.get(student_id)
-        if student:
-            db.session.delete(student)
-            db.session.commit()
-        return True
+        try:
+            student = Student.query.get(student_id)
+            if student:
+                db.session.delete(student)
+                db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class TeacherController:
@@ -66,35 +83,52 @@ class TeacherController:
     
     @staticmethod
     def create(user_id, teacher_code, **kwargs):
-        teacher = Teacher(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            teacher_code=teacher_code,
-            hire_date=kwargs.get('hire_date', datetime.utcnow().date()),
-            status=kwargs.get('status', 'active'),
-            **{k: v for k, v in kwargs.items() if k not in ['hire_date', 'status']}
-        )
-        db.session.add(teacher)
-        db.session.commit()
-        return teacher
+        try:
+            teacher = Teacher(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                teacher_code=teacher_code,
+                hire_date=kwargs.get('hire_date', datetime.utcnow().date()),
+                status=kwargs.get('status', 'active')
+            )
+            if 'specialization' in kwargs:
+                teacher.specialization = kwargs['specialization']
+            if 'department_id' in kwargs:
+                teacher.department_id = kwargs['department_id']
+            if 'phone' in kwargs:
+                teacher.phone = kwargs['phone']
+            db.session.add(teacher)
+            db.session.commit()
+            return teacher
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def update(teacher_id, **kwargs):
-        teacher = Teacher.query.get(teacher_id)
-        if teacher:
-            for key, value in kwargs.items():
-                if hasattr(teacher, key):
-                    setattr(teacher, key, value)
-            db.session.commit()
-        return teacher
+        try:
+            teacher = Teacher.query.get(teacher_id)
+            if teacher:
+                for key, value in kwargs.items():
+                    if hasattr(teacher, key) and key not in ['id', 'created_at']:
+                        setattr(teacher, key, value)
+                db.session.commit()
+            return teacher
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def delete(teacher_id):
-        teacher = Teacher.query.get(teacher_id)
-        if teacher:
-            db.session.delete(teacher)
-            db.session.commit()
-        return True
+        try:
+            teacher = Teacher.query.get(teacher_id)
+            if teacher:
+                db.session.delete(teacher)
+                db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class CourseController:
@@ -110,37 +144,50 @@ class CourseController:
     
     @staticmethod
     def create(subject_id, teacher_id, academic_period_id, course_code, **kwargs):
-        course = Course(
-            id=str(uuid.uuid4()),
-            subject_id=subject_id,
-            teacher_id=teacher_id,
-            academic_period_id=academic_period_id,
-            course_code=course_code,
-            max_students=kwargs.get('max_students', 30),
-            status=kwargs.get('status', 'active'),
-            **{k: v for k, v in kwargs.items() if k not in ['max_students', 'status']}
-        )
-        db.session.add(course)
-        db.session.commit()
-        return course
+        try:
+            course = Course(
+                id=str(uuid.uuid4()),
+                subject_id=subject_id,
+                teacher_id=teacher_id,
+                academic_period_id=academic_period_id,
+                course_code=course_code,
+                max_students=kwargs.get('max_students', 30),
+                status=kwargs.get('status', 'active')
+            )
+            if 'schedule' in kwargs:
+                course.schedule = kwargs['schedule']
+            db.session.add(course)
+            db.session.commit()
+            return course
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def update(course_id, **kwargs):
-        course = Course.query.get(course_id)
-        if course:
-            for key, value in kwargs.items():
-                if hasattr(course, key):
-                    setattr(course, key, value)
-            db.session.commit()
-        return course
+        try:
+            course = Course.query.get(course_id)
+            if course:
+                for key, value in kwargs.items():
+                    if hasattr(course, key) and key not in ['id', 'created_at']:
+                        setattr(course, key, value)
+                db.session.commit()
+            return course
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def delete(course_id):
-        course = Course.query.get(course_id)
-        if course:
-            db.session.delete(course)
-            db.session.commit()
-        return True
+        try:
+            course = Course.query.get(course_id)
+            if course:
+                db.session.delete(course)
+                db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class DepartmentController:
@@ -156,32 +203,45 @@ class DepartmentController:
     
     @staticmethod
     def create(name, **kwargs):
-        dept = Department(
-            id=str(uuid.uuid4()),
-            name=name,
-            **kwargs
-        )
-        db.session.add(dept)
-        db.session.commit()
-        return dept
+        try:
+            dept = Department(
+                id=str(uuid.uuid4()),
+                name=name,
+                description=kwargs.get('description'),
+                head=kwargs.get('head')
+            )
+            db.session.add(dept)
+            db.session.commit()
+            return dept
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def update(dept_id, **kwargs):
-        dept = Department.query.get(dept_id)
-        if dept:
-            for key, value in kwargs.items():
-                if hasattr(dept, key):
-                    setattr(dept, key, value)
-            db.session.commit()
-        return dept
+        try:
+            dept = Department.query.get(dept_id)
+            if dept:
+                for key, value in kwargs.items():
+                    if hasattr(dept, key) and key not in ['id', 'created_at']:
+                        setattr(dept, key, value)
+                db.session.commit()
+            return dept
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def delete(dept_id):
-        dept = Department.query.get(dept_id)
-        if dept:
-            db.session.delete(dept)
-            db.session.commit()
-        return True
+        try:
+            dept = Department.query.get(dept_id)
+            if dept:
+                db.session.delete(dept)
+                db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class SubjectController:
@@ -197,15 +257,21 @@ class SubjectController:
     
     @staticmethod
     def create(name, code, **kwargs):
-        subject = Subject(
-            id=str(uuid.uuid4()),
-            name=name,
-            code=code,
-            **kwargs
-        )
-        db.session.add(subject)
-        db.session.commit()
-        return subject
+        try:
+            subject = Subject(
+                id=str(uuid.uuid4()),
+                name=name,
+                code=code,
+                description=kwargs.get('description'),
+                credits=kwargs.get('credits', 3),
+                department_id=kwargs.get('department_id')
+            )
+            db.session.add(subject)
+            db.session.commit()
+            return subject
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class GradeController:
@@ -221,36 +287,49 @@ class GradeController:
     
     @staticmethod
     def create(enrollment_id, assessment_type, grade, **kwargs):
-        grade_obj = Grade(
-            id=str(uuid.uuid4()),
-            enrollment_id=enrollment_id,
-            assessment_type=assessment_type,
-            assessment_name=kwargs.get('assessment_name', assessment_type),
-            grade=grade,
-            assessment_date=kwargs.get('assessment_date', datetime.utcnow().date()),
-            **{k: v for k, v in kwargs.items() if k not in ['assessment_name', 'assessment_date']}
-        )
-        db.session.add(grade_obj)
-        db.session.commit()
-        return grade_obj
+        try:
+            grade_obj = Grade(
+                id=str(uuid.uuid4()),
+                enrollment_id=enrollment_id,
+                assessment_type=assessment_type,
+                assessment_name=kwargs.get('assessment_name', assessment_type),
+                grade=grade,
+                assessment_date=kwargs.get('assessment_date', datetime.utcnow().date()),
+                max_grade=kwargs.get('max_grade', 100),
+                weight=kwargs.get('weight')
+            )
+            db.session.add(grade_obj)
+            db.session.commit()
+            return grade_obj
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def update(grade_id, **kwargs):
-        grade_obj = Grade.query.get(grade_id)
-        if grade_obj:
-            for key, value in kwargs.items():
-                if hasattr(grade_obj, key):
-                    setattr(grade_obj, key, value)
-            db.session.commit()
-        return grade_obj
+        try:
+            grade_obj = Grade.query.get(grade_id)
+            if grade_obj:
+                for key, value in kwargs.items():
+                    if hasattr(grade_obj, key) and key not in ['id', 'created_at']:
+                        setattr(grade_obj, key, value)
+                db.session.commit()
+            return grade_obj
+        except Exception as e:
+            db.session.rollback()
+            raise e
     
     @staticmethod
     def delete(grade_id):
-        grade_obj = Grade.query.get(grade_id)
-        if grade_obj:
-            db.session.delete(grade_obj)
-            db.session.commit()
-        return True
+        try:
+            grade_obj = Grade.query.get(grade_id)
+            if grade_obj:
+                db.session.delete(grade_obj)
+                db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class EnrollmentController:
@@ -266,15 +345,20 @@ class EnrollmentController:
     
     @staticmethod
     def create(student_id, course_id, **kwargs):
-        enrollment = Enrollment(
-            id=str(uuid.uuid4()),
-            student_id=student_id,
-            course_id=course_id,
-            status=kwargs.get('status', 'enrolled')
-        )
-        db.session.add(enrollment)
-        db.session.commit()
-        return enrollment
+        try:
+            enrollment = Enrollment(
+                id=str(uuid.uuid4()),
+                student_id=student_id,
+                course_id=course_id,
+                status=kwargs.get('status', 'enrolled'),
+                final_grade=kwargs.get('final_grade')
+            )
+            db.session.add(enrollment)
+            db.session.commit()
+            return enrollment
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class AttendanceController:
@@ -286,16 +370,20 @@ class AttendanceController:
     
     @staticmethod
     def create(enrollment_id, date, status, **kwargs):
-        attendance = Attendance(
-            id=str(uuid.uuid4()),
-            enrollment_id=enrollment_id,
-            date=date,
-            status=status,
-            **kwargs
-        )
-        db.session.add(attendance)
-        db.session.commit()
-        return attendance
+        try:
+            attendance = Attendance(
+                id=str(uuid.uuid4()),
+                enrollment_id=enrollment_id,
+                date=date,
+                status=status,
+                notes=kwargs.get('notes')
+            )
+            db.session.add(attendance)
+            db.session.commit()
+            return attendance
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class UserController:
@@ -311,17 +399,22 @@ class UserController:
     
     @staticmethod
     def create(email, password, name, role, **kwargs):
-        from auth import hash_password
-        user = User(
-            id=str(uuid.uuid4()),
-            email=email,
-            password=hash_password(password),
-            name=name,
-            role=role
-        )
-        db.session.add(user)
-        db.session.commit()
-        return user
+        try:
+            from auth import hash_password
+            user = User(
+                id=str(uuid.uuid4()),
+                email=email,
+                password=hash_password(password),
+                name=name,
+                role=role,
+                avatar=kwargs.get('avatar')
+            )
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 
 class DashboardController:
@@ -329,9 +422,17 @@ class DashboardController:
     
     @staticmethod
     def get_statistics():
-        return {
-            'totalStudents': Student.query.count(),
-            'totalTeachers': Teacher.query.count(),
-            'activeCourses': Course.query.filter_by(status='active').count(),
-            'totalDepartments': Department.query.count()
-        }
+        try:
+            return {
+                'totalStudents': Student.query.count(),
+                'totalTeachers': Teacher.query.count(),
+                'activeCourses': Course.query.filter_by(status='active').count(),
+                'totalDepartments': Department.query.count()
+            }
+        except Exception:
+            return {
+                'totalStudents': 0,
+                'totalTeachers': 0,
+                'activeCourses': 0,
+                'totalDepartments': 0
+            }
