@@ -4,7 +4,7 @@ Routes - Flask Views for School Management System
 
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
-from models import db, User, Student, Teacher, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject
+from models import db, User, Student, Teacher, Grade, Subject, Enrollment, Assessment, Attendance, Schedule, TeacherSubject, Calificacion
 from auth import verify_password, hash_password
 from app import app
 from datetime import date, datetime
@@ -962,38 +962,37 @@ def student_my_grades():
         flash('Estudiante no encontrado', 'error')
         return redirect(url_for('dashboard'))
     
-    # Get all enrollments for this student with their grades
-    enrollments = Enrollment.query.filter_by(student_id=student.id).all()
+    # Get all grades from calificaciones table for this student
+    calificaciones = Calificacion.query.filter_by(student_id=student.id).order_by(Calificacion.fecha_calificacion.desc()).all()
     
-    grades_data = []
+    # Group by subject
+    subjects_grades = {}
     total_promedio = 0
-    total_subjects = 0
+    total_calificaciones = 0
     
-    for enrollment in enrollments:
-        # Calculate average from three semesters
-        sem1 = float(enrollment.semester_1) if enrollment.semester_1 else 0
-        sem2 = float(enrollment.semester_2) if enrollment.semester_2 else 0
-        sem3 = float(enrollment.semester_3) if enrollment.semester_3 else 0
-        promedio = round((sem1 + sem2 + sem3) / 3, 2)
-        
-        # Check if student has grades
-        has_grades = enrollment.semester_1 or enrollment.semester_2 or enrollment.semester_3
-        
-        grades_data.append({
-            'subject': enrollment.subject.name,
-            'teacher': enrollment.teacher,
-            'semester_1': enrollment.semester_1,
-            'semester_2': enrollment.semester_2,
-            'semester_3': enrollment.semester_3,
-            'promedio': promedio,
-            'has_grades': has_grades
+    for cal in calificaciones:
+        subject_id = cal.subject_id
+        if subject_id not in subjects_grades:
+            subjects_grades[subject_id] = {
+                'subject': cal.subject.name,
+                'teacher': cal.teacher,
+                'grades': []
+            }
+        subjects_grades[subject_id]['grades'].append({
+            'calificacion': float(cal.calificacion) if cal.calificacion else 0,
+            'semester': cal.semester,
+            'fecha': cal.fecha_calificacion,
+            'nota_texto': cal.nota_texto
         })
         
-        if has_grades:
-            total_promedio += promedio
-            total_subjects += 1
+        if cal.calificacion:
+            total_promedio += float(cal.calificacion)
+            total_calificaciones += 1
+    
+    # Convert to list
+    grades_data = list(subjects_grades.values())
     
     # Calculate general average
-    general_average = round(total_promedio / total_subjects, 2) if total_subjects > 0 else 0
+    general_average = round(total_promedio / total_calificaciones, 2) if total_calificaciones > 0 else 0
     
     return render_template('student_my_grades.html', grades_data=grades_data, student=student, general_average=general_average)

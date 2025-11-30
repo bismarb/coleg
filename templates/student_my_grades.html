@@ -13,7 +13,7 @@
     <div class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl shadow-lg p-6">
         <div class="flex justify-between items-center">
             <div>
-                <p class="text-sm font-semibold text-yellow-100">Promedio General</p>
+                <p class="text-sm font-semibold text-yellow-100">Promedio General de Todas las Calificaciones</p>
                 <p class="text-5xl font-bold">{{ general_average }}</p>
             </div>
             <div class="text-6xl">
@@ -31,75 +31,58 @@
     
     {% if grades_data %}
     <div class="grid grid-cols-1 gap-6">
-        {% for grade in grades_data %}
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 {% if grade.has_grades and grade.promedio >= 60 %}border-green-500{% elif grade.has_grades %}border-red-500{% else %}border-gray-300{% endif %}">
-            <div class="bg-gradient-to-r {% if grade.has_grades and grade.promedio >= 60 %}from-green-50 to-green-100{% elif grade.has_grades %}from-red-50 to-red-100{% else %}from-gray-50 to-gray-100{% endif %} p-6 border-b-2 {% if grade.has_grades and grade.promedio >= 60 %}border-green-200{% elif grade.has_grades %}border-red-200{% else %}border-gray-200{% endif %}">
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {% for subject_data in grades_data %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-blue-500">
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 border-b-2 border-blue-200">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-sm text-gray-600 font-semibold">Materia</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ grade.subject }}</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ subject_data.subject }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 font-semibold">Profesor</p>
-                        <p class="text-lg font-bold text-gray-800">{{ grade.teacher.user.name }}</p>
-                        <p class="text-xs text-gray-600">{{ grade.teacher.apellido_paterno }} {{ grade.teacher.apellido_materno }}</p>
-                    </div>
-                    <div class="md:text-right">
-                        <p class="text-sm text-gray-600 font-semibold">Promedio</p>
-                        {% if grade.has_grades %}
-                        <p class="text-4xl font-bold {% if grade.promedio >= 60 %}text-green-600{% else %}text-red-600{% endif %}">{{ grade.promedio }}</p>
-                        {% else %}
-                        <p class="text-2xl font-bold text-gray-400">-</p>
-                        {% endif %}
+                        <p class="text-lg font-bold text-gray-800">{{ subject_data.teacher.user.name }}</p>
+                        <p class="text-xs text-gray-600">{{ subject_data.teacher.apellido_paterno }} {{ subject_data.teacher.apellido_materno }}</p>
                     </div>
                 </div>
             </div>
             
             <div class="p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-chart-bar text-blue-600"></i>
-                    Calificaciones por Semestre
+                    <i class="fas fa-list-check text-blue-600"></i>
+                    Historial de Calificaciones
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Semestre 1 -->
-                    <div class="bg-sky-50 border-2 border-sky-200 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="font-semibold text-gray-800">1er Semestre</p>
-                            {% if grade.semester_1 %}
-                            <span class="{% if grade.semester_1 >= 60 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} px-3 py-1 rounded-full text-sm font-bold">{{ grade.semester_1 }}</span>
-                            {% else %}
-                            <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">-</span>
-                            {% endif %}
+                
+                {% if subject_data.grades %}
+                <div class="space-y-3">
+                    {% for grade in subject_data.grades %}
+                    <div class="flex items-center justify-between p-4 rounded-lg border-2 {% if grade.calificacion >= 60 %}bg-green-50 border-green-300{% else %}bg-red-50 border-red-300{% endif %}">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold {% if grade.semester == 1 %}bg-blue-100 text-blue-800{% elif grade.semester == 2 %}bg-purple-100 text-purple-800{% else %}bg-pink-100 text-pink-800{% endif %}">
+                                    Semestre {{ grade.semester }}
+                                </span>
+                                <span class="text-sm text-gray-600">
+                                    📅 {{ grade.fecha }}
+                                </span>
+                                {% if grade.nota_texto %}
+                                <span class="text-sm text-gray-700 italic">
+                                    📝 {{ grade.nota_texto }}
+                                </span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-600">Calificación 1</p>
-                    </div>
-                    
-                    <!-- Semestre 2 -->
-                    <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="font-semibold text-gray-800">2do Semestre</p>
-                            {% if grade.semester_2 %}
-                            <span class="{% if grade.semester_2 >= 60 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} px-3 py-1 rounded-full text-sm font-bold">{{ grade.semester_2 }}</span>
-                            {% else %}
-                            <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">-</span>
-                            {% endif %}
+                        <div class="text-right">
+                            <span class="text-3xl font-bold {% if grade.calificacion >= 60 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ grade.calificacion }}
+                            </span>
                         </div>
-                        <p class="text-xs text-gray-600">Calificación 2</p>
                     </div>
-                    
-                    <!-- Semestre 3 -->
-                    <div class="bg-pink-50 border-2 border-pink-200 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="font-semibold text-gray-800">3er Semestre</p>
-                            {% if grade.semester_3 %}
-                            <span class="{% if grade.semester_3 >= 60 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} px-3 py-1 rounded-full text-sm font-bold">{{ grade.semester_3 }}</span>
-                            {% else %}
-                            <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">-</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-xs text-gray-600">Calificación 3</p>
-                    </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <p class="text-gray-500 text-sm italic">No hay calificaciones registradas para esta materia aún.</p>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
