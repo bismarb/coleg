@@ -198,6 +198,8 @@ def add_teacher():
         email = request.form.get('email')
         teacher_code = request.form.get('teacher_code')
         specialization = request.form.get('specialization')
+        apellido_paterno = request.form.get('apellido_paterno')
+        apellido_materno = request.form.get('apellido_materno')
         
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
@@ -208,7 +210,7 @@ def add_teacher():
         db.session.add(user)
         db.session.flush()
         
-        teacher = Teacher(user_id=user.id, teacher_code=teacher_code, specialization=specialization, hire_date=date.today())
+        teacher = Teacher(user_id=user.id, teacher_code=teacher_code, specialization=specialization, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, hire_date=date.today())
         db.session.add(teacher)
         db.session.commit()
         
@@ -238,6 +240,8 @@ def edit_teacher(teacher_id):
             teacher.user.email = request.form.get('email')
             teacher.teacher_code = request.form.get('teacher_code')
             teacher.specialization = request.form.get('specialization')
+            teacher.apellido_paterno = request.form.get('apellido_paterno')
+            teacher.apellido_materno = request.form.get('apellido_materno')
             teacher.status = request.form.get('status')
             
             db.session.commit()

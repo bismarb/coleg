@@ -13,6 +13,16 @@
             </div>
             
             <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Paterno</label>
+                <input type="text" name="apellido_paterno" value="{{ teacher.apellido_paterno or '' }}" class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Materno</label>
+                <input type="text" name="apellido_materno" value="{{ teacher.apellido_materno or '' }}" class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
+            </div>
+            
+            <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <input type="email" name="email" value="{{ teacher.user.email }}" required class="w-full px-4 py-3 bg-sky-50 border-2 border-sky-200 rounded-lg focus:outline-none focus:border-sky-500 text-gray-800">
             </div>
