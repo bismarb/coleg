@@ -135,3 +135,21 @@ class Schedule(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     teacher = db.relationship('Teacher', backref='schedules')
     grade_rel = db.relationship('Grade', backref='schedules')
+
+
+class Calificacion(db.Model):
+    __tablename__ = 'calificaciones'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    enrollment_id = db.Column(db.String(36), db.ForeignKey('enrollments.id'), nullable=False)
+    student_id = db.Column(db.String(36), db.ForeignKey('students.id'), nullable=False)
+    subject_id = db.Column(db.String(36), db.ForeignKey('subjects.id'), nullable=False)
+    teacher_id = db.Column(db.String(36), db.ForeignKey('teachers.id'), nullable=False)
+    semester = db.Column(db.Integer, nullable=False)
+    calificacion = db.Column(db.Numeric(5, 2), nullable=False)
+    nota_texto = db.Column(db.Text, nullable=True)
+    fecha_calificacion = db.Column(db.Date, default=datetime.today)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    enrollment = db.relationship('Enrollment', backref='calificaciones')
+    student = db.relationship('Student', backref='calificaciones')
+    subject = db.relationship('Subject', backref='calificaciones')
+    teacher = db.relationship('Teacher', backref='calificaciones')
