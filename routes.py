@@ -1094,7 +1094,7 @@ def student_my_grades():
     return render_template('student_my_grades.html', grades_data=grades_data, student=student, general_average=general_average)
 
 
-@app.route('/admin/credentials')
+@app.route('/admin/credentials', methods=['GET', 'POST'])
 @login_required
 def admin_credentials():
     if current_user.role != 'admin':
