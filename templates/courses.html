@@ -39,6 +39,15 @@
                         {{ course.status|upper }}
                     </span>
                 </div>
+                {% if current_user.role == 'student' %}
+                <div class="pt-4">
+                    <form method="POST" action="{{ url_for('enroll_course', course_id=course.id) }}" style="display: inline;">
+                        <button type="submit" class="w-full gradient-btn text-white py-2 rounded-lg font-bold transition hover:shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-plus-circle"></i> Inscribirse
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

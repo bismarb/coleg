@@ -242,3 +242,38 @@ def create_grade():
         flash(f'Error: {str(e)}', 'error')
     
     return redirect(url_for('grades'))
+
+
+@app.route('/courses/<course_id>/enroll', methods=['POST'])
+@login_required
+def enroll_course(course_id):
+    if current_user.role != 'student':
+        flash('Only students can enroll', 'error')
+        return redirect(url_for('courses'))
+    
+    try:
+        student = Student.query.filter_by(user_id=current_user.id).first()
+        if not student:
+            flash('Student profile not found', 'error')
+            return redirect(url_for('courses'))
+        
+        course = Course.query.get(course_id)
+        if not course:
+            flash('Course not found', 'error')
+            return redirect(url_for('courses'))
+        
+        existing = Enrollment.query.filter_by(student_id=student.id, course_id=course_id).first()
+        if existing:
+            flash('Already enrolled in this course', 'error')
+            return redirect(url_for('courses'))
+        
+        enrollment = Enrollment(student_id=student.id, course_id=course_id, status='enrolled')
+        db.session.add(enrollment)
+        db.session.commit()
+        
+        flash(f'Successfully enrolled in {course.subject.name}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('courses'))
