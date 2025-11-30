@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-800"><i class="fas fa-book text-purple-600 mr-2"></i>Mis Cursos</h1>
+        <p class="text-lg text-gray-600">Grado: <span class="font-bold text-purple-600">{{ student.grade.name }}</span></p>
+    </div>
+    
+    {% if courses_data %}
+    <div class="grid grid-cols-1 gap-6">
+        {% for course in courses_data %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-purple-600">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 p-6 border-b-2 border-purple-200">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-semibold">Materia</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ course.subject.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 font-semibold">Profesor</p>
+                        <p class="text-lg font-bold text-purple-700">{{ course.teacher.user.name }}</p>
+                        <p class="text-xs text-gray-600">{{ course.teacher.specialization or 'Sin especialización' }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if course.schedules %}
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-calendar-days text-purple-600"></i>
+                    Horarios de Clase
+                </h3>
+                <div class="space-y-3">
+                    {% for schedule in course.schedules %}
+                    <div class="bg-sky-50 border-2 border-sky-200 rounded-lg p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold text-center min-w-max">
+                                {{ schedule.day_of_week }}
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-600">Horario</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ schedule.start_time }} - {{ schedule.end_time }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Aula</p>
+                            <p class="text-xl font-bold text-purple-700">{{ schedule.classroom or 'N/A' }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="p-6 bg-yellow-50 border-t-2 border-yellow-200">
+                <p class="text-yellow-700 text-sm font-semibold flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    No hay horarios registrados para esta materia.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-6 rounded-lg">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-inbox text-2xl"></i>
+            <div>
+                <p class="font-bold">Sin cursos registrados</p>
+                <p class="text-sm">Contacta a tu administrador para agregar tus cursos.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -97,6 +97,13 @@
                         <span>Asistencia</span>
                     </a>
                 </li>
+                {% else %}
+                <li>
+                    <a href="{{ url_for('student_my_courses') }}" class="sidebar-item block p-4 rounded-lg hover:bg-sky-500 transition flex items-center gap-3 font-medium">
+                        <i class="fas fa-book text-lg"></i>
+                        <span>Mis Cursos</span>
+                    </a>
+                </li>
                 {% endif %}
             </ul>
         </aside>

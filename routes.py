@@ -718,3 +718,38 @@ def teacher_attendance():
         return redirect(url_for('teacher_attendance'))
     
     return render_template('teacher_attendance.html', grades_data=grades_data)
+
+
+@app.route('/student/my-courses')
+@login_required
+def student_my_courses():
+    if current_user.role != 'student':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    if not student:
+        flash('Estudiante no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get all enrollments for this student
+    enrollments = Enrollment.query.filter_by(student_id=student.id).all()
+    
+    # Get schedules for the student's grade
+    schedules = Schedule.query.filter_by(grade_id=student.grade_id).all()
+    
+    # Organize enrollments with their schedules
+    courses_data = []
+    for enrollment in enrollments:
+        teacher = enrollment.teacher
+        subject = enrollment.subject
+        # Get schedules for this teacher in this grade
+        teacher_schedules = [s for s in schedules if s.teacher_id == teacher.id]
+        courses_data.append({
+            'teacher': teacher,
+            'subject': subject,
+            'grade': enrollment.grade,
+            'schedules': teacher_schedules
+        })
+    
+    return render_template('student_my_courses.html', courses_data=courses_data, student=student)
