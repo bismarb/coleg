@@ -8,26 +8,14 @@ from flask_login import LoginManager
 from models import db, User
 from auth import hash_password
 from datetime import date
-from sqlalchemy.pool import QueuePool
 
 app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = 'academia-secret-key-2024'
-database_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/academia_db')
-# Add SSL and pool settings for reliable connections
-if 'sslmode' not in database_url:
-    database_url = database_url + '?sslmode=require'
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+# Use SQLite for local development
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///academia.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'poolclass': QueuePool,
-    'pool_size': 10,
-    'max_overflow': 20,
-    'pool_pre_ping': True,
-    'pool_recycle': 3600,
-    'connect_args': {'connect_timeout': 10}
-}
 
 db.init_app(app)
 
