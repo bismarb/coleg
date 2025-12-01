@@ -1203,3 +1203,341 @@ def my_profile():
         return redirect(url_for('my_profile'))
     
     return render_template('my_profile.html', user=current_user)
+
+
+# ========== SUBJECTS (MATERIAS) CRUD ==========
+@app.route('/subjects')
+@login_required
+def subjects():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    subjects = Subject.query.all()
+    return render_template('subjects.html', subjects=subjects)
+
+
+@app.route('/subject/add', methods=['POST'])
+@login_required
+def add_subject():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        name = request.form.get('name')
+        code = request.form.get('code')
+        credits = request.form.get('credits', 3)
+        
+        existing = Subject.query.filter_by(code=code).first()
+        if existing:
+            flash('El código de materia ya existe', 'error')
+            return redirect(url_for('subjects'))
+        
+        subject = Subject(name=name, code=code, credits=int(credits))
+        db.session.add(subject)
+        db.session.commit()
+        flash(f'Materia {name} agregada exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('subjects'))
+
+
+@app.route('/subject/<subject_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_subject(subject_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    subject = Subject.query.get(subject_id)
+    if not subject:
+        flash('Materia no encontrada', 'error')
+        return redirect(url_for('subjects'))
+    
+    if request.method == 'POST':
+        try:
+            subject.name = request.form.get('name')
+            subject.code = request.form.get('code')
+            subject.credits = int(request.form.get('credits', 3))
+            db.session.commit()
+            flash('Materia actualizada exitosamente', 'success')
+            return redirect(url_for('subjects'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_subject.html', subject=subject)
+
+
+@app.route('/subject/<subject_id>/delete', methods=['POST'])
+@login_required
+def delete_subject(subject_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    subject = Subject.query.get(subject_id)
+    if subject:
+        try:
+            db.session.delete(subject)
+            db.session.commit()
+            flash('Materia eliminada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al eliminar: {str(e)}', 'error')
+    
+    return redirect(url_for('subjects'))
+
+
+# ========== ENROLLMENTS CRUD ==========
+@app.route('/enrollments')
+@login_required
+def enrollments():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    enrollments = Enrollment.query.all()
+    return render_template('enrollments.html', enrollments=enrollments)
+
+
+@app.route('/enrollment/add', methods=['POST'])
+@login_required
+def add_enrollment():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        student_id = request.form.get('student_id')
+        teacher_id = request.form.get('teacher_id')
+        subject_id = request.form.get('subject_id')
+        grade_id = request.form.get('grade_id')
+        
+        existing = Enrollment.query.filter_by(
+            student_id=student_id,
+            teacher_id=teacher_id,
+            subject_id=subject_id
+        ).first()
+        
+        if existing:
+            flash('Esta inscripción ya existe', 'error')
+            return redirect(url_for('enrollments'))
+        
+        enrollment = Enrollment(
+            student_id=student_id,
+            teacher_id=teacher_id,
+            subject_id=subject_id,
+            grade_id=grade_id
+        )
+        db.session.add(enrollment)
+        db.session.commit()
+        flash('Inscripción agregada exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('enrollments'))
+
+
+@app.route('/enrollment/<enrollment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_enrollment(enrollment_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    enrollment = Enrollment.query.get(enrollment_id)
+    if not enrollment:
+        flash('Inscripción no encontrada', 'error')
+        return redirect(url_for('enrollments'))
+    
+    if request.method == 'POST':
+        try:
+            enrollment.status = request.form.get('status')
+            enrollment.final_grade = request.form.get('final_grade') or None
+            db.session.commit()
+            flash('Inscripción actualizada exitosamente', 'success')
+            return redirect(url_for('enrollments'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_enrollment.html', enrollment=enrollment)
+
+
+@app.route('/enrollment/<enrollment_id>/delete', methods=['POST'])
+@login_required
+def delete_enrollment(enrollment_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    enrollment = Enrollment.query.get(enrollment_id)
+    if enrollment:
+        try:
+            db.session.delete(enrollment)
+            db.session.commit()
+            flash('Inscripción eliminada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al eliminar: {str(e)}', 'error')
+    
+    return redirect(url_for('enrollments'))
+
+
+# ========== TEACHER_SUBJECTS CRUD ==========
+@app.route('/teacher-subjects')
+@login_required
+def teacher_subjects():
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    teacher_subjects = TeacherSubject.query.all()
+    return render_template('teacher_subjects.html', teacher_subjects=teacher_subjects)
+
+
+@app.route('/teacher-subject/add', methods=['POST'])
+@login_required
+def add_teacher_subject():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Denegado'}), 403
+    
+    try:
+        teacher_id = request.form.get('teacher_id')
+        subject_id = request.form.get('subject_id')
+        
+        existing = TeacherSubject.query.filter_by(
+            teacher_id=teacher_id,
+            subject_id=subject_id
+        ).first()
+        
+        if existing:
+            flash('Este profesor ya enseña esta materia', 'error')
+            return redirect(url_for('teacher_subjects'))
+        
+        ts = TeacherSubject(teacher_id=teacher_id, subject_id=subject_id)
+        db.session.add(ts)
+        db.session.commit()
+        flash('Asignación agregada exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
+    
+    return redirect(url_for('teacher_subjects'))
+
+
+@app.route('/teacher-subject/<ts_id>/delete', methods=['POST'])
+@login_required
+def delete_teacher_subject(ts_id):
+    if current_user.role != 'admin':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    ts = TeacherSubject.query.get(ts_id)
+    if ts:
+        try:
+            db.session.delete(ts)
+            db.session.commit()
+            flash('Asignación eliminada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al eliminar: {str(e)}', 'error')
+    
+    return redirect(url_for('teacher_subjects'))
+
+
+# ========== ASSESSMENTS CRUD COMPLETO ==========
+@app.route('/assessment/<assessment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_assessment(assessment_id):
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    assessment = Assessment.query.get(assessment_id)
+    if not assessment:
+        flash('Evaluación no encontrada', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            assessment.assessment_type = request.form.get('assessment_type')
+            assessment.score = float(request.form.get('score', 0))
+            assessment.assessment_date = date.fromisoformat(request.form.get('assessment_date'))
+            db.session.commit()
+            flash('Evaluación actualizada exitosamente', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_assessment.html', assessment=assessment)
+
+
+@app.route('/assessment/<assessment_id>/delete', methods=['POST'])
+@login_required
+def delete_assessment(assessment_id):
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    assessment = Assessment.query.get(assessment_id)
+    if assessment:
+        try:
+            db.session.delete(assessment)
+            db.session.commit()
+            flash('Evaluación eliminada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al eliminar: {str(e)}', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+
+# ========== ATTENDANCE CRUD COMPLETO ==========
+@app.route('/attendance/<attendance_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_attendance(attendance_id):
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    attendance = Attendance.query.get(attendance_id)
+    if not attendance:
+        flash('Registro de asistencia no encontrado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            attendance.status = request.form.get('status')
+            attendance.notes = request.form.get('notes')
+            db.session.commit()
+            flash('Asistencia actualizada exitosamente', 'success')
+            return redirect(url_for('teacher_attendance'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+    
+    return render_template('edit_attendance.html', attendance=attendance)
+
+
+@app.route('/attendance/<attendance_id>/delete', methods=['POST'])
+@login_required
+def delete_attendance(attendance_id):
+    if current_user.role != 'teacher':
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('dashboard'))
+    
+    attendance = Attendance.query.get(attendance_id)
+    if attendance:
+        try:
+            db.session.delete(attendance)
+            db.session.commit()
+            flash('Registro de asistencia eliminado exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al eliminar: {str(e)}', 'error')
+    
+    return redirect(url_for('teacher_attendance'))
