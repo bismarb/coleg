@@ -8,13 +8,26 @@ from flask_login import LoginManager
 from models import db, User
 from auth import hash_password
 from datetime import date
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = 'academia-secret-key-2024'
-# Use SQLite for local development
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///academia.db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'academia-secret-key-2024')
+
+# Database configuration - PostgreSQL in production, SQLite in development
+if os.getenv('DATABASE_URL'):
+    # Production: Use PostgreSQL from Render
+    database_url = os.getenv('DATABASE_URL')
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Development: Use SQLite locally
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///academia.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
