@@ -3,6 +3,7 @@ Main Application - Flask Setup
 """
 
 import os
+from typing import Optional
 from flask import Flask
 from flask_login import LoginManager
 from models import db, User
@@ -18,9 +19,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'academia-secret-key-2024')
 
 # Database configuration - PostgreSQL in production, SQLite in development
-if os.getenv('DATABASE_URL'):
+database_url: Optional[str] = os.getenv('DATABASE_URL')
+if database_url:
     # Production: Use PostgreSQL from Render
-    database_url = os.getenv('DATABASE_URL')
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -39,9 +40,9 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db.init_app(app)
 
 # Login Manager
-login_manager = LoginManager()
+login_manager: LoginManager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login'  # type: ignore
 
 @login_manager.user_loader
 def load_user(user_id):
