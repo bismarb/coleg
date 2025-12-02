@@ -1,5 +1,4 @@
-*.db
-*.sqlite
+
 .env
 .env.local
 .env.production.local
